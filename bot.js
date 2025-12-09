@@ -684,7 +684,7 @@ client.on('message', async (message) => {
                 console.log(`   getMentions() hatası:`, e.message);
             }
             
-            // 2. rawMessageData'dan kontrol et - KESIN ÇÖZÜM!
+            // 2. rawMessageData'dan kontrol et - SADECE TAM EŞLEŞME!
             if (!isMentioned && rawMessageData) {
                 // Tüm olası mention alanlarını kontrol et
                 const allFields = [
@@ -706,45 +706,41 @@ client.on('message', async (message) => {
                     }
                 }
                 
-                // Tüm mention alanlarını kontrol et
+                // Tüm mention alanlarını kontrol et - SADECE TAM EŞLEŞME!
                 for (let i = 0; i < allFields.length; i++) {
                     const field = allFields[i];
                     if (Array.isArray(field) && field.length > 0) {
                         const found = field.some(id => {
                             const idStr = id.toString();
                             
-                            // Farklı formatları dene
+                            // SADECE TAM EŞLEŞME - includes() KULLANMA!
+                            // Farklı formatları dene ama SADECE TAM EŞLEŞME
                             let cleanId = idStr.replace(/[@\D]/g, '');
-                            let match1 = cleanId === botNumberClean;
+                            let match1 = cleanId === botNumberClean; // TAM EŞLEŞME
                             
                             let cleanId2 = idStr.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@lid', '').replace('@', '').replace(/[^\d]/g, '');
-                            let match2 = cleanId2 === botNumberClean;
+                            let match2 = cleanId2 === botNumberClean; // TAM EŞLEŞME
                             
-                            let match3 = idStr.includes(botNumber) || idStr.includes(botNumberClean);
-                            let match4 = idStr === `${botNumber}@c.us` || idStr === `${botNumberClean}@c.us`;
+                            // @c.us formatında TAM EŞLEŞME
+                            let match3 = idStr === `${botNumber}@c.us` || idStr === `${botNumberClean}@c.us`;
                             
-                            return match1 || match2 || match3 || match4;
+                            // SADECE TAM EŞLEŞME - includes() YOK!
+                            const match = match1 || match2 || match3;
+                            
+                            if (match) {
+                                console.log(`   ✅ TAM EŞLEŞME BULUNDU: "${idStr}" === "${botNumberClean}"`);
+                            } else {
+                                console.log(`   ❌ EŞLEŞME YOK: "${idStr}" !== "${botNumberClean}"`);
+                            }
+                            
+                            return match;
                         });
                         if (found) {
                             isMentioned = true;
-                            console.log(`   ✅✅✅ MENTION BULUNDU! (rawMessageData)`);
+                            console.log(`   ✅✅✅ MENTION BULUNDU! (rawMessageData - TAM EŞLEŞME)`);
                             break;
                         }
                     }
-                }
-            }
-            
-            // 3. SON ÇARE: Mesaj içeriğinde @ işareti varsa VE rawMessageData'da mention alanı varsa, MENTION SAY
-            // (WhatsApp'ta bazen mention bilgisi rawMessageData'da olur ama format farklı olabilir)
-            if (!isMentioned && messageBody.includes('@') && rawMessageData) {
-                const allKeys = Object.keys(rawMessageData);
-                const hasMentionField = allKeys.some(k => k.toLowerCase().includes('mention'));
-                
-                if (hasMentionField) {
-                    // Mention alanı varsa, bot numarası kontrolü yapmadan direkt mention say
-                    // Çünkü WhatsApp mention yapıldığında zaten bot numarasını gönderir
-                    console.log(`   ✅✅✅ MENTION BULUNDU! (mesaj içeriğinde @ + rawMessageData'da mention alanı var)`);
-                    isMentioned = true;
                 }
             }
             
