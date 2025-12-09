@@ -345,8 +345,15 @@ client.on('message', async (message) => {
             console.log(`📩 Özel mesaj alındı: ${message.from}`);
         }
         
+        const botNumber = client.info.wid.user;
+        const BLOCKED_NUMBER = '5428055983'; // Bu numara etiketlenince bot cevap vermeyecek
+        let isMentioned = false;
+        
+        const messageBody = message.body || '';
+        const rawMessageData = message.rawData || {};
+        
         // Admin paneline mesaj kaydet
-        const messageData = {
+        const adminMessageData = {
             from: message.from,
             body: message.body || '(medya mesajı)',
             isGroup: isGroup,
@@ -363,13 +370,6 @@ client.on('message', async (message) => {
                 name: chat.name || 'İsimsiz Grup'
             });
         }
-
-        const botNumber = client.info.wid.user;
-        const BLOCKED_NUMBER = '5428055983'; // Bu numara etiketlenince bot cevap vermeyecek
-        let isMentioned = false;
-        
-        const messageBody = message.body || '';
-        const messageData = message.rawData || {};
         
         // EN ÖNCE komut kontrolü yap (her şeyden önce!)
         // Mesajdan mention'ı temizle ve sadece komutu kontrol et
