@@ -658,8 +658,26 @@ function parseCommand(messageBody) {
     const trimmedBody = messageBody.trim();
     const lowerBody = trimmedBody.toLowerCase();
     
-    // Komut kontrolü (/ ile başlayan komutlar öncelikli)
-    if (trimmedBody.startsWith('/help') || trimmedBody.toLowerCase() === '/help' || lowerBody === 'help' || lowerBody.includes('komut') || lowerBody.includes('yardım')) {
+    // Komut kontrolü (slash olmadan, sadece kelime olarak)
+    // Tam eşleşme kontrolü (başında ve sonunda boşluk veya mesaj sonu)
+    if (lowerBody === 'help' || lowerBody === 'yardım' || lowerBody === 'komut' || lowerBody.startsWith('help ') || lowerBody.startsWith('yardım ') || lowerBody.startsWith('komut ')) {
+        return 'help';
+    }
+    if (lowerBody === 'menu' || lowerBody === 'menü' || lowerBody.startsWith('menu ') || lowerBody.startsWith('menü ')) {
+        return 'menu';
+    }
+    if (lowerBody === 'today' || lowerBody === 'bugün' || lowerBody === 'bugun' || lowerBody.startsWith('today ') || lowerBody.startsWith('bugün ') || lowerBody.startsWith('bugun ')) {
+        return 'today';
+    }
+    if (lowerBody === 'tomorrow' || lowerBody === 'yarın' || lowerBody === 'yarin' || lowerBody.startsWith('tomorrow ') || lowerBody.startsWith('yarın ') || lowerBody.startsWith('yarin ')) {
+        return 'tomorrow';
+    }
+    if (lowerBody === 'week' || lowerBody === 'haftalık' || lowerBody === 'haftalik' || lowerBody === 'bu hafta' || lowerBody.startsWith('week ') || lowerBody.startsWith('haftalık ') || lowerBody.startsWith('haftalik ') || lowerBody.startsWith('bu hafta ')) {
+        return 'week';
+    }
+    
+    // Eski slash komutları da destekle (geriye dönük uyumluluk)
+    if (trimmedBody.startsWith('/help') || trimmedBody.toLowerCase() === '/help') {
         return 'help';
     }
     if (trimmedBody.startsWith('/menu') || trimmedBody.toLowerCase() === '/menu') {
@@ -673,11 +691,6 @@ function parseCommand(messageBody) {
     }
     if (trimmedBody.startsWith('/week') || trimmedBody.toLowerCase() === '/week') {
         return 'week';
-    }
-    
-    // Eğer / ile başlıyorsa ama komut tanınmıyorsa, help göster
-    if (trimmedBody.startsWith('/')) {
-        return 'help';
     }
     
     return null;
@@ -716,25 +729,27 @@ async function sendHelpMessage(chat, message) {
     const helpText = `📋 *KYK Yemek Botu - Komutlar*
 
 🔹 *Temel Komutlar:*
-\`/menu\` veya \`menü\` - Bugünün yemek menüsü
-\`/today\` veya \`bugün\` - Bugünün yemek menüsü
-\`/tomorrow\` veya \`yarın\` - Yarının yemek menüsü
-\`/week\` veya \`haftalık\` - Bu haftanın yemek menüsü
-\`/help\` - Bu yardım mesajı
+• \`help\` veya \`yardım\` - Bu yardım mesajı
+• \`menu\` veya \`menü\` - Bugünün yemek menüsü
+• \`bugün\` - Bugünün yemek menüsü
+• \`yarın\` - Yarının yemek menüsü
+• \`haftalık\` veya \`week\` - Bu haftanın yemek menüsü
 
 🔹 *Kullanım:*
 • Bot numarasını etiketleyin: \`@bot\`
-• Komut yazın: \`/menu\`
+• Komut yazın: \`@bot help\` veya \`@bot menu\`
 • Veya sadece "yemek" yazın
 
 🔹 *Tarih Sorgulama:*
 • "yarın", "pazartesi", "10 aralık" gibi ifadeler kullanabilirsiniz
 
 🔹 *Örnekler:*
-• \`@bot /menu\`
-• \`@bot yarın\`
-• \`@bot pazartesi\`
-• \`@bot 15 aralık\`
+• \`@bot help\` - Yardım mesajı
+• \`@bot menu\` - Bugünün menüsü
+• \`@bot yarın\` - Yarının menüsü
+• \`@bot pazartesi\` - Pazartesi menüsü
+• \`@bot 15 aralık\` - Belirli tarih menüsü
+• \`@bot haftalık\` - Haftalık menü
 
 ━━━━━━━━━━━━━━━━━━━━
 @5428055983 (Tuna Karataş) tarafından geliştirilmiştir.`;
