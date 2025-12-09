@@ -470,7 +470,7 @@ client.on('message', async (message) => {
                     console.log(`   getMentions() hatası, alternatif yöntem deneniyor...`);
                 // Alternatif yöntem: Mesaj verisinden mention kontrolü
                 if (rawMessageData.mentionedJid && Array.isArray(rawMessageData.mentionedJid)) {
-                        console.log(`   mentionedJid:`, messageData.mentionedJid);
+                        console.log(`   mentionedJid:`, rawMessageData.mentionedJid);
                         console.log(`   Bot numarası: ${botNumber}`);
                         isMentionedForCommand = rawMessageData.mentionedJid.some(id => {
                             const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
