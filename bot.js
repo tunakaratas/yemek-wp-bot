@@ -609,21 +609,27 @@ client.on('message', async (message) => {
             console.log(`\n🔍 Mention kontrolü - Grup: ${chat.name}`);
             console.log(`   Bot numarası: ${botNumber}`);
             console.log(`   Mesaj içeriği: ${messageBody.substring(0, 100)}`);
+            console.log(`   rawMessageData var mı:`, !!rawMessageData);
+            console.log(`   rawMessageData.mentionedJid:`, rawMessageData?.mentionedJid);
             
             // Önce rawMessageData'dan kontrol et (daha güvenilir)
-            if (rawMessageData.mentionedJid && Array.isArray(rawMessageData.mentionedJid)) {
-                console.log(`   mentionedJid bulundu:`, rawMessageData.mentionedJid);
+            if (rawMessageData && rawMessageData.mentionedJid && Array.isArray(rawMessageData.mentionedJid)) {
+                console.log(`   ✅ mentionedJid bulundu:`, rawMessageData.mentionedJid);
                 isMentioned = rawMessageData.mentionedJid.some(id => {
                     const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                     const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
-                    console.log(`   Karşılaştırma: cleanId=${cleanId}, botCleanId=${botCleanId}`);
+                    console.log(`   Karşılaştırma: cleanId="${cleanId}", botCleanId="${botCleanId}"`);
                     // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
                     const match = cleanId === botCleanId;
                     if (match) {
-                        console.log(`   ✅ mentionedJid ile eşleşme bulundu!`);
+                        console.log(`   ✅✅✅ mentionedJid ile eşleşme bulundu! ✅✅✅`);
+                    } else {
+                        console.log(`   ❌ Eşleşme yok: ${cleanId} !== ${botCleanId}`);
                     }
                     return match;
                 });
+            } else {
+                console.log(`   ⚠️  mentionedJid bulunamadı veya array değil`);
             }
             
             // Eğer mentionedJid ile bulunamadıysa, getMentions() dene
@@ -635,11 +641,13 @@ client.on('message', async (message) => {
                         isMentioned = mentions.some(contact => {
                             if (contact && contact.id) {
                                 const contactUser = contact.id.user || '';
-                                console.log(`   Mention kontrolü: contact.user=${contactUser}, botNumber=${botNumber}`);
+                                console.log(`   Mention kontrolü: contact.user="${contactUser}", botNumber="${botNumber}"`);
                                 // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
                                 if (contactUser === botNumber) {
-                                    console.log(`   ✅ getMentions() ile eşleşme bulundu!`);
+                                    console.log(`   ✅✅✅ getMentions() ile eşleşme bulundu! ✅✅✅`);
                                     return true;
+                                } else {
+                                    console.log(`   ❌ Eşleşme yok: ${contactUser} !== ${botNumber}`);
                                 }
                             }
                             return false;
@@ -654,7 +662,7 @@ client.on('message', async (message) => {
             // Eğer mention yoksa, hiçbir şey yapma - @ işareti kontrolü YOK
             // Yemek kelimesi kontrolü de YOK - sadece mention ile çalışır
             
-            console.log(`   Sonuç: Mention = ${isMentioned}\n`);
+            console.log(`   🔍🔍🔍 SONUÇ: Mention = ${isMentioned} 🔍🔍🔍\n`);
         }
 
         if (isMentioned) {
