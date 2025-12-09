@@ -760,7 +760,6 @@ client.on('message', async (message) => {
             
             // 4. rawMessageData'yı daha detaylı kontrol et
             if (!isMentioned && rawMessageData) {
-                console.log(`   🔍 rawMessageData detaylı kontrol:`, JSON.stringify(rawMessageData).substring(0, 500));
                 // Farklı alanlarda mention bilgisi olabilir
                 const possibleMentionFields = [
                     rawMessageData.mentionedJid,
@@ -773,10 +772,14 @@ client.on('message', async (message) => {
                     if (Array.isArray(field) && field.length > 0) {
                         console.log(`   ✅ Alternatif mention alanı bulundu:`, field);
                         const found = field.some(id => {
-                            let cleanId = id.toString().replace(/[^\d]/g, '');
+                            // Farklı formatları normalize et
+                            let cleanId = id.toString();
+                            cleanId = cleanId.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@lid', '').replace('@', '');
+                            cleanId = cleanId.replace(/[^\d]/g, ''); // Sadece rakamları al
+                            
                             const match = cleanId === botNumberClean || cleanId.includes(botNumberClean) || botNumberClean.includes(cleanId);
                             if (match) {
-                                console.log(`   ✅✅✅ Alternatif alanda eşleşme bulundu! ✅✅✅`);
+                                console.log(`   ✅✅✅ Alternatif alanda eşleşme bulundu! (${cleanId} === ${botNumberClean}) ✅✅✅`);
                             }
                             return match;
                         });
@@ -785,6 +788,27 @@ client.on('message', async (message) => {
                             break;
                         }
                     }
+                }
+            }
+            
+            // 5. Son çare: Mesaj içeriğinde bot numarası geçiyorsa mention say
+            // (WhatsApp'ta bazen mention bilgisi mesaj verisinde olmayabilir ama mesaj içeriğinde görünebilir)
+            if (!isMentioned && messageBody) {
+                const botNumberVariants = [
+                    botNumberClean, // 905335445983
+                    botNumberClean.replace(/^90/, ''), // 5335445983
+                    botNumberClean.replace(/^905/, ''), // 335445983
+                ];
+                
+                // Mesaj içinde bot numarası geçiyor mu? (mention olarak veya normal olarak)
+                const hasBotNumber = botNumberVariants.some(num => {
+                    // @ ile mention veya sadece numara olarak geçiyor mu?
+                    return messageBody.includes(num) || messageBody.includes(`@${num}`);
+                });
+                
+                if (hasBotNumber) {
+                    console.log(`   ✅ Mesaj içeriğinde bot numarası bulundu (mention olarak kabul edildi)`);
+                    isMentioned = true;
                 }
             }
             
