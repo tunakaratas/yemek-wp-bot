@@ -645,17 +645,17 @@ client.on('message', async (message) => {
                 return;
             }
         } else {
-            // Grup mesajlarında mention kontrolü - BASIT YAKLAŞIM
-            // Etiket atılırsa cevap ver - bu kadar basit!
+            // Grup mesajlarında mention kontrolü - ÇOK BASIT!
+            // Etiket atılırsa cevap ver, bu kadar!
             
-            // 1. getMentions() ile kontrol et
+            // 1. getMentions() ile kontrol et - bot mention edilmiş mi?
             try {
                 const mentions = await message.getMentions();
                 if (mentions && mentions.length > 0) {
                     isMentioned = mentions.some(contact => {
                         if (contact?.id) {
-                            const contactUser = contact.id.user || '';
-                            return contactUser === botNumber;
+                            // Bot numarası ile karşılaştır
+                            return contact.id.user === botNumber;
                         }
                         return false;
                     });
@@ -664,16 +664,18 @@ client.on('message', async (message) => {
                 // Hata olursa rawMessageData'dan kontrol et
             }
             
-            // 2. rawMessageData'dan kontrol et
+            // 2. rawMessageData'dan kontrol et - mention var mı?
             if (!isMentioned && rawMessageData) {
-                const mentionFields = [
+                // Tüm mention alanlarını kontrol et
+                const allMentionFields = [
                     rawMessageData.mentionedJid,
                     rawMessageData.mentionedJidList,
                     rawMessageData.mentionedJids,
                 ].filter(f => Array.isArray(f) && f.length > 0);
                 
-                for (const field of mentionFields) {
+                for (const field of allMentionFields) {
                     const found = field.some(id => {
+                        // Mention'daki ID'yi temizle ve bot numarası ile karşılaştır
                         const cleanId = id.toString().replace(/[@\D]/g, '');
                         return cleanId === botNumberClean;
                     });
@@ -685,7 +687,7 @@ client.on('message', async (message) => {
             }
             
             if (isMentioned) {
-                console.log(`   ✅ Bot etiketlendi!`);
+                console.log(`   ✅ Bot etiketlendi - cevap verilecek!`);
             }
         }
 
