@@ -696,9 +696,11 @@ client.on('message', async (message) => {
                 
                 for (const key of mentionKeys) {
                     const field = rawMessageData[key];
-                    if (Array.isArray(field) && field.length > 0) {
-                        console.log(`   "${key}" alanı bulundu:`, field);
-                        allFields.push(field);
+                    if (Array.isArray(field)) {
+                        console.log(`   "${key}" alanı:`, field);
+                        if (field.length > 0) {
+                            allFields.push(field);
+                        }
                     }
                 }
                 
@@ -735,6 +737,32 @@ client.on('message', async (message) => {
                         if (found) {
                             isMentioned = true;
                             console.log(`   ✅✅✅ MENTION BULUNDU! (rawMessageData Field[${i}])`);
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // 3. SON ÇARE: Mesaj içeriğinde @ işareti varsa VE rawMessageData'da mention alanı varsa
+            // Ama bu sefer mention alanındaki ID'leri kontrol et
+            if (!isMentioned && messageBody.includes('@') && rawMessageData) {
+                const allKeys = Object.keys(rawMessageData);
+                const mentionKeys = allKeys.filter(k => k.toLowerCase().includes('mention'));
+                
+                // Eğer mention alanı varsa, içindeki ID'leri kontrol et
+                for (const key of mentionKeys) {
+                    const field = rawMessageData[key];
+                    if (Array.isArray(field) && field.length > 0) {
+                        console.log(`   Son çare kontrolü: "${key}" alanında ${field.length} mention var`);
+                        const found = field.some(id => {
+                            const idStr = id.toString();
+                            let cleanId = idStr.replace(/[@\D]/g, '');
+                            let cleanId2 = idStr.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@lid', '').replace('@', '').replace(/[^\d]/g, '');
+                            return cleanId === botNumberClean || cleanId2 === botNumberClean;
+                        });
+                        if (found) {
+                            console.log(`   ✅✅✅ MENTION BULUNDU! (son çare - ${key})`);
+                            isMentioned = true;
                             break;
                         }
                     }
