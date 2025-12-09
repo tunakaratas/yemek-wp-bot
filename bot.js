@@ -684,7 +684,7 @@ client.on('message', async (message) => {
                 console.log(`   getMentions() hatası:`, e.message);
             }
             
-            // 2. rawMessageData'dan kontrol et - TÜM ALANLARI KONTROL ET
+            // 2. rawMessageData'dan kontrol et - KESIN ÇÖZÜM!
             if (!isMentioned && rawMessageData) {
                 // Tüm olası mention alanlarını kontrol et
                 const allFields = [
@@ -692,59 +692,59 @@ client.on('message', async (message) => {
                     rawMessageData.mentionedJidList,
                     rawMessageData.mentionedJids,
                     rawMessageData.mentions,
-                    rawMessageData.nonJidMentions, // WhatsApp'ta bazen bu alanda tutulur
+                    rawMessageData.nonJidMentions,
                 ];
                 
-                // Ayrıca rawMessageData'nın tüm key'lerini kontrol et
+                // rawMessageData'nın tüm key'lerini kontrol et
                 const allKeys = Object.keys(rawMessageData || {});
-                console.log(`   rawMessageData tüm key'ler:`, allKeys);
-                
-                // "mention" içeren tüm key'leri kontrol et
                 const mentionKeys = allKeys.filter(k => k.toLowerCase().includes('mention'));
-                console.log(`   Mention içeren key'ler:`, mentionKeys);
                 
                 for (const key of mentionKeys) {
                     const field = rawMessageData[key];
                     if (Array.isArray(field) && field.length > 0) {
-                        console.log(`   "${key}" kontrol ediliyor:`, field);
                         allFields.push(field);
                     }
                 }
                 
+                // Tüm mention alanlarını kontrol et
                 for (let i = 0; i < allFields.length; i++) {
                     const field = allFields[i];
                     if (Array.isArray(field) && field.length > 0) {
-                        console.log(`   Field[${i}] kontrol ediliyor:`, field);
                         const found = field.some(id => {
                             const idStr = id.toString();
-                            console.log(`     ID kontrolü: "${idStr}"`);
                             
                             // Farklı formatları dene
                             let cleanId = idStr.replace(/[@\D]/g, '');
                             let match1 = cleanId === botNumberClean;
                             
-                            // Alternatif: @c.us veya @s.whatsapp.net ile
                             let cleanId2 = idStr.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@lid', '').replace('@', '').replace(/[^\d]/g, '');
                             let match2 = cleanId2 === botNumberClean;
                             
-                            // Alternatif: Bot numarası içeriyor mu?
                             let match3 = idStr.includes(botNumber) || idStr.includes(botNumberClean);
-                            
-                            // Alternatif: @c.us formatında
                             let match4 = idStr === `${botNumber}@c.us` || idStr === `${botNumberClean}@c.us`;
                             
-                            const match = match1 || match2 || match3 || match4;
-                            if (match) {
-                                console.log(`     ✅ EŞLEŞME BULUNDU! (${idStr})`);
-                            }
-                            return match;
+                            return match1 || match2 || match3 || match4;
                         });
                         if (found) {
                             isMentioned = true;
-                            console.log(`   ✅✅✅ MENTION BULUNDU! (Field[${i}])`);
+                            console.log(`   ✅✅✅ MENTION BULUNDU! (rawMessageData)`);
                             break;
                         }
                     }
+                }
+            }
+            
+            // 3. SON ÇARE: Mesaj içeriğinde @ işareti varsa VE rawMessageData'da mention alanı varsa, MENTION SAY
+            // (WhatsApp'ta bazen mention bilgisi rawMessageData'da olur ama format farklı olabilir)
+            if (!isMentioned && messageBody.includes('@') && rawMessageData) {
+                const allKeys = Object.keys(rawMessageData);
+                const hasMentionField = allKeys.some(k => k.toLowerCase().includes('mention'));
+                
+                if (hasMentionField) {
+                    // Mention alanı varsa, bot numarası kontrolü yapmadan direkt mention say
+                    // Çünkü WhatsApp mention yapıldığında zaten bot numarasını gönderir
+                    console.log(`   ✅✅✅ MENTION BULUNDU! (mesaj içeriğinde @ + rawMessageData'da mention alanı var)`);
+                    isMentioned = true;
                 }
             }
             
