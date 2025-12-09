@@ -314,10 +314,14 @@ client.on('authentication', () => {
 // Mesaj dinleme
 client.on('message', async (message) => {
     try {
-        // Sadece grup mesajlarını işle
+        // Grup ve özel mesajları işle
         const chat = await message.getChat();
-        if (!chat.isGroup) {
-            return;
+        const isGroup = chat.isGroup;
+        const isPrivate = !isGroup;
+        
+        // Özel mesajlarda mention kontrolü gerekmez, direkt komut veya mesaj içeriğine bak
+        if (isPrivate) {
+            console.log(`📩 Özel mesaj alındı: ${message.from}`);
         }
 
         const botNumber = client.info.wid.user;
@@ -389,53 +393,60 @@ client.on('message', async (message) => {
             console.log(`   Orijinal mesaj: ${messageBody}`);
             console.log(`   Temizlenmiş mesaj: ${cleanMessageBody}`);
             
-            // Komut varsa mention kontrolü yap (komutlar için mention gerekli)
+            // Komut varsa mention kontrolü yap (özel mesajlarda mention gerekmez)
             let isMentionedForCommand = false;
             
-            // Mention kontrolü - önce getMentions() dene
-            try {
-                const mentions = await message.getMentions();
-                console.log(`   getMentions() sonucu:`, mentions?.length || 0, 'mention');
-                if (mentions && mentions.length > 0) {
-                    mentions.forEach(contact => {
-                        if (contact && contact.id) {
-                            const contactUser = contact.id.user || '';
-                            const contactSerialized = contact.id._serialized || '';
-                            console.log(`   Mention kontrolü: contact.user=${contactUser}, botNumber=${botNumber}`);
-                            if (contactUser === botNumber || contactSerialized.includes(botNumber)) {
-                                isMentionedForCommand = true;
+            // Özel mesajlarda mention kontrolü gerekmez, direkt komut işlenir
+            if (isPrivate) {
+                isMentionedForCommand = true;
+                console.log(`   ✅ Özel mesaj - mention kontrolü atlandı`);
+            } else {
+                // Grup mesajlarında mention kontrolü yap
+                // Mention kontrolü - önce getMentions() dene
+                try {
+                    const mentions = await message.getMentions();
+                    console.log(`   getMentions() sonucu:`, mentions?.length || 0, 'mention');
+                    if (mentions && mentions.length > 0) {
+                        mentions.forEach(contact => {
+                            if (contact && contact.id) {
+                                const contactUser = contact.id.user || '';
+                                const contactSerialized = contact.id._serialized || '';
+                                console.log(`   Mention kontrolü: contact.user=${contactUser}, botNumber=${botNumber}`);
+                                if (contactUser === botNumber || contactSerialized.includes(botNumber)) {
+                                    isMentionedForCommand = true;
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
+                } catch (mentionError) {
+                    console.log(`   getMentions() hatası, alternatif yöntem deneniyor...`);
+                    // Alternatif yöntem: Mesaj verisinden mention kontrolü
+                    if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
+                        console.log(`   mentionedJid:`, messageData.mentionedJid);
+                        console.log(`   Bot numarası: ${botNumber}`);
+                        isMentionedForCommand = messageData.mentionedJid.some(id => {
+                            const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                            const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                            console.log(`   Karşılaştırma: cleanId=${cleanId}, botCleanId=${botCleanId}`);
+                            const match = cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
+                            if (match) console.log(`   ✅ Eşleşme bulundu!`);
+                            return match;
+                        });
+                    }
                 }
-            } catch (mentionError) {
-                console.log(`   getMentions() hatası, alternatif yöntem deneniyor...`);
-                // Alternatif yöntem: Mesaj verisinden mention kontrolü
-                if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
-                    console.log(`   mentionedJid:`, messageData.mentionedJid);
-                    console.log(`   Bot numarası: ${botNumber}`);
-                    isMentionedForCommand = messageData.mentionedJid.some(id => {
-                        const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
-                        const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
-                        console.log(`   Karşılaştırma: cleanId=${cleanId}, botCleanId=${botCleanId}`);
-                        const match = cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
-                        if (match) console.log(`   ✅ Eşleşme bulundu!`);
-                        return match;
-                    });
+                
+                // Eğer hala mention bulunamadıysa, mesaj içeriğinde @ işareti varsa mention say
+                if (!isMentionedForCommand && messageBody.includes('@')) {
+                    console.log(`   Mesaj içeriğinde @ işareti var, mention olarak kabul ediliyor`);
+                    isMentionedForCommand = true;
                 }
-            }
-            
-            // Eğer hala mention bulunamadıysa, mesaj içeriğinde @ işareti varsa mention say
-            if (!isMentionedForCommand && messageBody.includes('@')) {
-                console.log(`   Mesaj içeriğinde @ işareti var, mention olarak kabul ediliyor`);
-                isMentionedForCommand = true;
-            }
-            
-            // Eğer hala mention bulunamadıysa ama mesaj içeriğinde @ işareti varsa, mention olarak kabul et
-            // (Komutlar için mention gerekli ama bazen mention kontrolü çalışmıyor)
-            if (!isMentionedForCommand && messageBody.includes('@')) {
-                console.log(`   ⚠️  Mention kontrolü başarısız ama mesaj içeriğinde @ var, mention olarak kabul ediliyor`);
-                isMentionedForCommand = true;
+                
+                // Eğer hala mention bulunamadıysa ama mesaj içeriğinde @ işareti varsa, mention olarak kabul et
+                // (Komutlar için mention gerekli ama bazen mention kontrolü çalışmıyor)
+                if (!isMentionedForCommand && messageBody.includes('@')) {
+                    console.log(`   ⚠️  Mention kontrolü başarısız ama mesaj içeriğinde @ var, mention olarak kabul ediliyor`);
+                    isMentionedForCommand = true;
+                }
             }
             
             console.log(`   Mention kontrolü sonucu: ${isMentionedForCommand}`);
