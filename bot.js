@@ -203,13 +203,14 @@ const client = new Client({
             '--disable-gpu',
             '--disable-blink-features=AutomationControlled',
             '--disable-features=IsolateOrigins,site-per-process',
-            '--window-size=1920,1080',
-            '--start-maximized',
             '--disable-extensions',
             '--disable-software-rasterizer',
             '--disable-background-timer-throttling',
             '--disable-backgrounding-occluded-windows',
-            '--disable-renderer-backgrounding'
+            '--disable-renderer-backgrounding',
+            '--single-process',
+            '--disable-xshm',
+            '--disable-ipc-flooding-protection'
         ],
         executablePath: undefined,
         // Daha uzun timeout'lar
