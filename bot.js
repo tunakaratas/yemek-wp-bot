@@ -694,6 +694,9 @@ async function sendYemekBilgisi(chat, message, requestedTarih = null) {
         
         // Loading mesajını sil ve yeni mesajı gönder
         try {
+            console.log(`   📤 Mesaj gönderiliyor... (Uzunluk: ${mesaj.length} karakter)`);
+            console.log(`   📝 Mesaj önizleme: ${mesaj.substring(0, 100)}...`);
+            
             if (loadingMsg) {
                 await loadingMsg.delete();
             }
@@ -702,18 +705,21 @@ async function sendYemekBilgisi(chat, message, requestedTarih = null) {
             const sentMessage = await message.reply(mesaj);
             rateLimiter.messageSent(); // Mesaj sayacını güncelle
             
-            console.log(`   ✅ Mesaj başarıyla gönderildi (ID: ${sentMessage.id._serialized || 'N/A'})`);
+            console.log(`   ✅ Mesaj başarıyla gönderildi (ID: ${sentMessage.id._serialized || sentMessage.id || 'N/A'})`);
             console.log(`   📊 Günlük: ${rateLimiter.dailyMessageCount}/${ANTI_BAN_CONFIG.DAILY_MESSAGE_LIMIT}, Saatlik: ${rateLimiter.hourlyMessageCount}/${ANTI_BAN_CONFIG.HOURLY_MESSAGE_LIMIT}`);
         } catch (sendError) {
             console.error('⚠️  Mesaj gönderme hatası:', sendError.message);
             console.error('⚠️  Hata detayı:', sendError);
+            console.error('⚠️  Hata stack:', sendError.stack);
             // Hata durumunda chat.sendMessage ile dene
             try {
-                await chat.sendMessage(mesaj);
+                console.log(`   🔄 Alternatif yöntem deneniyor (chat.sendMessage)...`);
+                const altSentMessage = await chat.sendMessage(mesaj);
                 rateLimiter.messageSent();
-                console.log(`   ✅ Alternatif yöntemle mesaj gönderildi`);
+                console.log(`   ✅ Alternatif yöntemle mesaj gönderildi (ID: ${altSentMessage.id._serialized || altSentMessage.id || 'N/A'})`);
             } catch (altError) {
                 console.error('⚠️  Alternatif yöntem de başarısız:', altError.message);
+                console.error('⚠️  Alternatif hata detayı:', altError);
                 if (altError.message.includes('rate') || altError.message.includes('limit')) {
                     console.log('   ⚠️  Rate limit tespit edildi, mesaj gönderilmedi');
                 }
