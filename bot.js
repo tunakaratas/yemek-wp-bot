@@ -263,6 +263,9 @@ client.on('ready', () => {
     if (!config.BOT_NUMBER) {
         config.BOT_NUMBER = `${client.info.wid.user}@c.us`;
     }
+    
+    // Günlük bildirim sistemini başlat
+    startDailyNotifications();
 });
 
 // Bağlantı hatası
@@ -439,6 +442,13 @@ client.on('message', async (message) => {
                 return;
             }
             
+            // Komut sistemi kontrolü
+            const command = parseCommand(messageBody);
+            if (command) {
+                await handleCommand(chat, message, command);
+                return;
+            }
+            
             // Cooldown kaydet
             rateLimiter.setCooldown(userId, groupId);
             
@@ -570,6 +580,204 @@ function extractTarihFromMessage(messageBody) {
     }
     
     return null; // Tarih bulunamadı, bugün kullanılacak
+}
+
+// Komut parse etme
+function parseCommand(messageBody) {
+    if (!messageBody) return null;
+    
+    const lowerBody = messageBody.toLowerCase().trim();
+    
+    // Komut kontrolü (/ ile başlayan veya komut kelimesi)
+    if (lowerBody.startsWith('/help') || lowerBody.includes('komut') || lowerBody.includes('yardım')) {
+        return 'help';
+    }
+    if (lowerBody.startsWith('/menu') || lowerBody === 'menu' || lowerBody === 'menü') {
+        return 'menu';
+    }
+    if (lowerBody.startsWith('/today') || lowerBody === 'bugün' || lowerBody === 'bugun') {
+        return 'today';
+    }
+    if (lowerBody.startsWith('/tomorrow') || lowerBody === 'yarın' || lowerBody === 'yarin') {
+        return 'tomorrow';
+    }
+    if (lowerBody.startsWith('/week') || lowerBody === 'haftalık' || lowerBody === 'haftalik' || lowerBody === 'bu hafta') {
+        return 'week';
+    }
+    
+    return null;
+}
+
+// Komut işleme
+async function handleCommand(chat, message, command) {
+    try {
+        console.log(`📋 Komut alındı: ${command}`);
+        
+        switch (command) {
+            case 'help':
+                await sendHelpMessage(chat, message);
+                break;
+            case 'menu':
+            case 'today':
+                await sendYemekBilgisi(chat, message, null);
+                break;
+            case 'tomorrow':
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const tomorrowStr = tomorrow.toISOString().split('T')[0];
+                await sendYemekBilgisi(chat, message, tomorrowStr);
+                break;
+            case 'week':
+                await sendWeeklyMenu(chat, message);
+                break;
+        }
+    } catch (error) {
+        console.error('❌ Komut işleme hatası:', error.message);
+    }
+}
+
+// Yardım mesajı gönder
+async function sendHelpMessage(chat, message) {
+    const helpText = `📋 *KYK Yemek Botu - Komutlar*
+
+🔹 *Temel Komutlar:*
+\`/menu\` veya \`menü\` - Bugünün yemek menüsü
+\`/today\` veya \`bugün\` - Bugünün yemek menüsü
+\`/tomorrow\` veya \`yarın\` - Yarının yemek menüsü
+\`/week\` veya \`haftalık\` - Bu haftanın yemek menüsü
+\`/help\` - Bu yardım mesajı
+
+🔹 *Kullanım:*
+• Bot numarasını etiketleyin: \`@bot\`
+• Komut yazın: \`/menu\`
+• Veya sadece "yemek" yazın
+
+🔹 *Tarih Sorgulama:*
+• "yarın", "pazartesi", "10 aralık" gibi ifadeler kullanabilirsiniz
+
+🔹 *Örnekler:*
+• \`@bot /menu\`
+• \`@bot yarın\`
+• \`@bot pazartesi\`
+• \`@bot 15 aralık\`
+
+━━━━━━━━━━━━━━━━━━━━
+@5428055983 (Tuna Karataş) tarafından geliştirilmiştir.`;
+
+    try {
+        await message.reply(helpText);
+        rateLimiter.messageSent();
+    } catch (error) {
+        console.error('⚠️  Yardım mesajı gönderme hatası:', error.message);
+    }
+}
+
+// Haftalık menü gönder
+async function sendWeeklyMenu(chat, message) {
+    try {
+        const loadingMsg = await message.reply('📅 Haftalık menü getiriliyor...');
+        rateLimiter.messageSent();
+        
+        const today = new Date();
+        const menus = [];
+        
+        // 7 günlük menüyü çek
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            const dateStr = date.toISOString().split('T')[0];
+            
+            try {
+                const [kahvaltiResponse, aksamResponse] = await Promise.all([
+                    axios.get(config.YEMEK_API_URL, {
+                        params: { tarih: dateStr, sehir: 'balikesir', ogun: 'kahvalti' },
+                        timeout: 5000
+                    }).catch(() => null),
+                    axios.get(config.YEMEK_API_URL, {
+                        params: { tarih: dateStr, sehir: 'balikesir', ogun: 'aksam' },
+                        timeout: 5000
+                    }).catch(() => null)
+                ]);
+                
+                if (kahvaltiResponse?.data || aksamResponse?.data) {
+                    menus.push({
+                        date: dateStr,
+                        dateObj: date,
+                        kahvalti: kahvaltiResponse?.data || null,
+                        aksam: aksamResponse?.data || null
+                    });
+                }
+            } catch (e) {
+                // Hata durumunda devam et
+            }
+        }
+        
+        if (loadingMsg) {
+            await loadingMsg.delete();
+        }
+        
+        // Haftalık menü mesajını formatla
+        let weeklyText = `📅 *Haftalık Yemek Menüsü*\n`;
+        weeklyText += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+        
+        if (menus.length === 0) {
+            await message.reply('⚠️ Bu hafta için menü bulunamadı.');
+            rateLimiter.messageSent();
+            return;
+        }
+        
+        menus.forEach((menu, index) => {
+            const tarihObj = menu.dateObj;
+            const gunler = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+            const aylar = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 
+                          'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+            
+            const gunAdi = gunler[tarihObj.getDay()];
+            const gun = tarihObj.getDate();
+            const ay = aylar[tarihObj.getMonth()];
+            
+            weeklyText += `📆 *${gunAdi}, ${gun} ${ay}*\n`;
+            
+            if (menu.kahvalti?.yemekler?.length > 0) {
+                weeklyText += `🌤️ *Kahvaltı:* ${menu.kahvalti.yemekler.slice(0, 2).join(', ')}${menu.kahvalti.yemekler.length > 2 ? '...' : ''}\n`;
+            }
+            
+            if (menu.aksam?.yemekler?.length > 0) {
+                weeklyText += `🌙 *Akşam:* ${menu.aksam.yemekler.slice(0, 2).join(', ')}${menu.aksam.yemekler.length > 2 ? '...' : ''}\n`;
+            }
+            
+            weeklyText += `\n`;
+        });
+        
+        weeklyText += `━━━━━━━━━━━━━━━━━━━━\n`;
+        weeklyText += `@5428055983 (Tuna Karataş) tarafından geliştirilmiştir.`;
+        
+        // Mesaj çok uzunsa böl
+        if (weeklyText.length > 4000) {
+            // İlk yarıyı gönder
+            const firstHalf = weeklyText.substring(0, 2000);
+            const lastNewline = firstHalf.lastIndexOf('\n');
+            await message.reply(weeklyText.substring(0, lastNewline));
+            rateLimiter.messageSent();
+            
+            // İkinci yarıyı gönder
+            await rateLimiter.randomDelay();
+            await message.reply(weeklyText.substring(lastNewline + 1));
+            rateLimiter.messageSent();
+        } else {
+            await message.reply(weeklyText);
+            rateLimiter.messageSent();
+        }
+        
+    } catch (error) {
+        console.error('❌ Haftalık menü gönderme hatası:', error.message);
+        try {
+            await message.reply('❌ Haftalık menü alınırken bir hata oluştu.');
+            rateLimiter.messageSent();
+        } catch (e) {
+            // Sessizce geç
+        }
+    }
 }
 
 // Yemek bilgisini API'den çek ve gönder
@@ -818,6 +1026,123 @@ function formatYemekMesaji(kahvaltiBilgisi, aksamBilgisi, tarih, requestedTarih 
     mesaj += `@5428055983 (Tuna Karataş) tarafından geliştirilmiştir.`;
     
     return mesaj;
+}
+
+// Günlük bildirim sistemi
+let notificationInterval = null;
+
+function startDailyNotifications() {
+    console.log('🔔 Günlük bildirim sistemi başlatılıyor...');
+    console.log('   ⏰ Kahvaltı: Her gün 07:00');
+    console.log('   ⏰ Akşam Yemeği: Her gün 16:00\n');
+    
+    // Her dakika kontrol et
+    notificationInterval = setInterval(async () => {
+        const now = new Date();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        
+        // Saat 7:00 - Kahvaltı bildirimi
+        if (hour === 7 && minute === 0) {
+            console.log('🌤️  Kahvaltı bildirimi gönderiliyor...');
+            await sendDailyNotification('kahvalti');
+        }
+        
+        // Saat 16:00 - Akşam yemeği bildirimi
+        if (hour === 16 && minute === 0) {
+            console.log('🌙 Akşam yemeği bildirimi gönderiliyor...');
+            await sendDailyNotification('aksam');
+        }
+    }, 60000); // Her dakika kontrol et
+}
+
+// Günlük bildirim gönder
+async function sendDailyNotification(ogun) {
+    try {
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0];
+        
+        // Tüm grupları al
+        const chats = await client.getChats();
+        const groups = chats.filter(chat => chat.isGroup);
+        
+        console.log(`   📊 ${groups.length} grup bulundu`);
+        
+        // Her grup için bildirim gönder
+        for (const group of groups) {
+            try {
+                // API'den yemek bilgisini çek
+                let yemekBilgisi = null;
+                try {
+                    const response = await axios.get(config.YEMEK_API_URL, {
+                        params: {
+                            tarih: dateStr,
+                            sehir: 'balikesir',
+                            ogun: ogun
+                        },
+                        timeout: 10000
+                    });
+                    yemekBilgisi = response.data;
+                } catch (e) {
+                    console.log(`   ⚠️  ${group.name} için veri alınamadı`);
+                    continue;
+                }
+                
+                if (!yemekBilgisi || !yemekBilgisi.yemekler || yemekBilgisi.yemekler.length === 0) {
+                    continue; // Veri yoksa geç
+                }
+                
+                // Mesaj formatla
+                const tarihObj = new Date(dateStr);
+                const gunler = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+                const aylar = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 
+                              'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+                
+                const gunAdi = gunler[tarihObj.getDay()];
+                const gun = tarihObj.getDate();
+                const ay = aylar[tarihObj.getMonth()];
+                
+                let mesaj = '';
+                if (ogun === 'kahvalti') {
+                    mesaj = `🌤️ *${gunAdi}, ${gun} ${ay} - KAHVALTI MENÜSÜ*\n`;
+                    mesaj += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+                    yemekBilgisi.yemekler.forEach((yemek, index) => {
+                        mesaj += `${index + 1}. ${yemek}\n`;
+                    });
+                } else {
+                    mesaj = `🌙 *${gunAdi}, ${gun} ${ay} - AKŞAM YEMEĞİ MENÜSÜ*\n`;
+                    mesaj += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+                    yemekBilgisi.yemekler.forEach((yemek, index) => {
+                        mesaj += `${index + 1}. ${yemek}\n`;
+                    });
+                }
+                
+                mesaj += `\n━━━━━━━━━━━━━━━━━━━━\n`;
+                mesaj += `@5428055983 (Tuna Karataş) tarafından geliştirilmiştir.`;
+                
+                // Rate limiting
+                await rateLimiter.randomDelay();
+                
+                // Mesajı gönder
+                await group.sendMessage(mesaj);
+                rateLimiter.messageSent();
+                
+                console.log(`   ✅ ${group.name} grubuna bildirim gönderildi`);
+                
+                // Gruplar arası bekleme (spam önleme)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+            } catch (error) {
+                console.error(`   ❌ ${group.name} grubuna bildirim gönderilemedi:`, error.message);
+                // Hata olsa bile diğer gruplara devam et
+            }
+        }
+        
+        console.log('   ✅ Günlük bildirim tamamlandı\n');
+        
+    } catch (error) {
+        console.error('❌ Günlük bildirim hatası:', error.message);
+    }
 }
 
 // Botu başlat
