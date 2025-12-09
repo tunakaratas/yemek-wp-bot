@@ -210,7 +210,10 @@ const client = new Client({
             '--disable-renderer-backgrounding',
             '--single-process',
             '--disable-xshm',
-            '--disable-ipc-flooding-protection'
+            '--disable-ipc-flooding-protection',
+            '--headless=new',
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor'
         ],
         executablePath: undefined,
         // Daha uzun timeout'lar
