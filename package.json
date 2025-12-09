@@ -7,6 +7,7 @@
     "start": "node bot.js",
     "dev": "node bot.js",
     "api": "node api-server.js",
+    "admin": "node admin-server.js",
     "import-session": "node import-session.js"
   },
   "keywords": [

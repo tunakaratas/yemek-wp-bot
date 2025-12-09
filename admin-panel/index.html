@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYK Yemek Botu - Admin Paneli</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .group-item, .message-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .group-item h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .group-item .meta {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .message-item {
+            border-left-color: #28a745;
+        }
+        
+        .message-item.command {
+            border-left-color: #ffc107;
+        }
+        
+        .message-item .sender {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .message-item .content {
+            margin: 5px 0;
+            color: #333;
+        }
+        
+        .message-item .time {
+            color: #999;
+            font-size: 11px;
+        }
+        
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .refresh-btn:hover {
+            background: #5568d3;
+        }
+        
+        .empty {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ KYK Yemek Botu - Admin Paneli</h1>
+            <p>Bot istatistikleri, gruplar ve mesajlar</p>
+        </div>
+        
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <h3>Toplam Mesaj</h3>
+                <div class="value" id="totalMessages">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Toplam Komut</h3>
+                <div class="value" id="totalCommands">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Aktif Grup</h3>
+                <div class="value" id="activeGroups">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Son Güncelleme</h3>
+                <div class="value" style="font-size: 14px;" id="lastUpdate">-</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="panel">
+                <h2>📱 Gruplar</h2>
+                <button class="refresh-btn" onclick="loadGroups()">🔄 Yenile</button>
+                <div id="groups">
+                    <div class="empty">Yükleniyor...</div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>💬 Son Mesajlar</h2>
+                <button class="refresh-btn" onclick="loadMessages()">🔄 Yenile</button>
+                <div id="messages">
+                    <div class="empty">Yükleniyor...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '';
+        
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/stats`);
+                const stats = await response.json();
+                
+                document.getElementById('totalMessages').textContent = stats.totalMessages || 0;
+                document.getElementById('totalCommands').textContent = stats.totalCommands || 0;
+                
+                if (stats.lastUpdate) {
+                    const date = new Date(stats.lastUpdate);
+                    document.getElementById('lastUpdate').textContent = date.toLocaleString('tr-TR');
+                }
+            } catch (error) {
+                console.error('İstatistik yükleme hatası:', error);
+            }
+        }
+        
+        async function loadGroups() {
+            try {
+                const response = await fetch(`${API_BASE}/api/groups`);
+                const groups = await response.json();
+                
+                document.getElementById('activeGroups').textContent = groups.length;
+                
+                const groupsDiv = document.getElementById('groups');
+                
+                if (groups.length === 0) {
+                    groupsDiv.innerHTML = '<div class="empty">Henüz grup bulunamadı</div>';
+                    return;
+                }
+                
+                groupsDiv.innerHTML = groups.map(group => `
+                    <div class="group-item">
+                        <h4>${group.name || 'İsimsiz Grup'}</h4>
+                        <div class="meta">
+                            <div>ID: ${group.id || 'N/A'}</div>
+                            <div>İlk görülme: ${group.firstSeen ? new Date(group.firstSeen).toLocaleString('tr-TR') : 'N/A'}</div>
+                            <div>Son görülme: ${group.lastSeen ? new Date(group.lastSeen).toLocaleString('tr-TR') : 'N/A'}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Grup yükleme hatası:', error);
+                document.getElementById('groups').innerHTML = '<div class="empty">Hata: Gruplar yüklenemedi</div>';
+            }
+        }
+        
+        async function loadMessages() {
+            try {
+                const response = await fetch(`${API_BASE}/api/messages?limit=50`);
+                const messages = await response.json();
+                
+                const messagesDiv = document.getElementById('messages');
+                
+                if (messages.length === 0) {
+                    messagesDiv.innerHTML = '<div class="empty">Henüz mesaj bulunamadı</div>';
+                    return;
+                }
+                
+                messagesDiv.innerHTML = messages.map(msg => `
+                    <div class="message-item ${msg.isCommand ? 'command' : ''}">
+                        <div class="sender">${msg.from || 'Bilinmeyen'}</div>
+                        <div class="content">${msg.body || '(medya mesajı)'}</div>
+                        <div class="time">${msg.timestamp ? new Date(msg.timestamp).toLocaleString('tr-TR') : 'N/A'}</div>
+                        ${msg.groupName ? `<div class="time">Grup: ${msg.groupName}</div>` : ''}
+                        ${msg.isCommand ? '<div style="color: #ffc107; font-size: 11px; margin-top: 5px;">⚡ Komut</div>' : ''}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Mesaj yükleme hatası:', error);
+                document.getElementById('messages').innerHTML = '<div class="empty">Hata: Mesajlar yüklenemedi</div>';
+            }
+        }
+        
+        // Sayfa yüklendiğinde verileri çek
+        loadStats();
+        loadGroups();
+        loadMessages();
+        
+        // Her 5 saniyede bir otomatik yenile
+        setInterval(() => {
+            loadStats();
+            loadGroups();
+            loadMessages();
+        }, 5000);
+    </script>
+</body>
+</html>
+

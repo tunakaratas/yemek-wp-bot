@@ -312,6 +312,15 @@ client.on('authentication', () => {
 });
 
 // Mesaj dinleme
+// Admin paneline veri gönder
+async function sendToAdminPanel(endpoint, data) {
+    try {
+        await axios.post(`${ADMIN_API_URL}/api/${endpoint}`, data, { timeout: 1000 });
+    } catch (error) {
+        // Admin panel çalışmıyorsa sessizce geç
+    }
+}
+
 client.on('message', async (message) => {
     try {
         // Grup ve özel mesajları işle
@@ -322,6 +331,25 @@ client.on('message', async (message) => {
         // Özel mesajlarda mention kontrolü gerekmez, direkt komut veya mesaj içeriğine bak
         if (isPrivate) {
             console.log(`📩 Özel mesaj alındı: ${message.from}`);
+        }
+        
+        // Admin paneline mesaj kaydet
+        const messageData = {
+            from: message.from,
+            body: message.body || '(medya mesajı)',
+            isGroup: isGroup,
+            groupName: isGroup ? chat.name : null,
+            groupId: isGroup ? (chat.id._serialized || chat.id) : null,
+            isCommand: false,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Grup bilgisini admin paneline gönder
+        if (isGroup) {
+            await sendToAdminPanel('groups', {
+                id: chat.id._serialized || chat.id,
+                name: chat.name || 'İsimsiz Grup'
+            });
         }
 
         const botNumber = client.info.wid.user;
@@ -345,6 +373,14 @@ client.on('message', async (message) => {
         console.log(`   Temizlenmiş mesaj: "${cleanMessageBody}"`);
         
         const command = parseCommand(cleanMessageBody);
+        
+        // Komut varsa işaretle
+        if (command) {
+            messageData.isCommand = true;
+        }
+        
+        // Admin paneline mesajı gönder
+        await sendToAdminPanel('messages', messageData);
         
         // Eğer komut yoksa ama mesaj tek kelime ve mention varsa, bilinmeyen komut olabilir
         if (!command && cleanMessageBody && !cleanMessageBody.includes(' ') && messageBody.includes('@')) {
