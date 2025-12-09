@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Session Export</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #25D366;
+            text-align: center;
+        }
+        .step {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #25D366;
+            border-radius: 5px;
+        }
+        button {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #20BA5A;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 WhatsApp Session Export</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Önemli:</strong> Bu sayfayı WhatsApp Web'e bağlı olduğunuz tarayıcıda açın!
+        </div>
+
+        <div class="step">
+            <h3>Adım 1: WhatsApp Web'e Bağlanın</h3>
+            <p>Normal tarayıcınızda (Chrome/Safari) <a href="https://web.whatsapp.com" target="_blank">web.whatsapp.com</a> adresine gidin ve telefonunuzla QR kodu tarayın.</p>
+        </div>
+
+        <div class="step">
+            <h3>Adım 2: Session Bilgilerini Export Edin</h3>
+            <p>WhatsApp Web'e bağlandıktan sonra, aşağıdaki butona tıklayın:</p>
+            <button onclick="exportSession()">📥 Session Bilgilerini Export Et</button>
+        </div>
+
+        <div id="result"></div>
+
+        <div class="step">
+            <h3>Adım 3: Export Edilen Bilgileri Kullanın</h3>
+            <p>Yukarıdaki butona tıkladıktan sonra çıkan JSON verisini kopyalayın ve <code>session-data.json</code> dosyasına kaydedin.</p>
+        </div>
+    </div>
+
+    <script>
+        async function exportSession() {
+            try {
+                // WhatsApp Web localStorage'dan session bilgilerini çek
+                const sessionData = {
+                    timestamp: new Date().toISOString(),
+                    localStorage: {},
+                    cookies: []
+                };
+
+                // localStorage'dan önemli anahtarları çek
+                const importantKeys = [
+                    'WABrowserId',
+                    'WASecretBundle',
+                    'WAToken1',
+                    'WAToken2',
+                    'last-wid',
+                    'wid',
+                    'wa_browser_id',
+                    'wa_secret_bundle',
+                    'wa_token_1',
+                    'wa_token_2'
+                ];
+
+                // Tüm localStorage'ı kontrol et
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.includes('WA') || key.includes('wa') || key.includes('Wid') || key.includes('Token'))) {
+                        try {
+                            sessionData.localStorage[key] = localStorage.getItem(key);
+                        } catch (e) {
+                            console.warn('LocalStorage key okunamadı:', key);
+                        }
+                    }
+                }
+
+                // Cookies'leri çek (document.cookie üzerinden)
+                if (document.cookie) {
+                    const cookies = document.cookie.split(';');
+                    cookies.forEach(cookie => {
+                        const [name, value] = cookie.trim().split('=');
+                        if (name && (name.includes('wa') || name.includes('WA') || name.includes('token') || name.includes('Token'))) {
+                            sessionData.cookies.push({ name, value });
+                        }
+                    });
+                }
+
+                // Sonucu göster
+                const resultDiv = document.getElementById('result');
+                const jsonData = JSON.stringify(sessionData, null, 2);
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Session Bilgileri Başarıyla Export Edildi!</h3>
+                        <p>Aşağıdaki JSON verisini kopyalayın:</p>
+                        <textarea readonly>${jsonData}</textarea>
+                        <button onclick="downloadJSON()">💾 JSON Dosyasını İndir</button>
+                        <p><strong>Sonraki adım:</strong> Bu dosyayı bot klasörüne kopyalayın ve import scriptini çalıştırın.</p>
+                    </div>
+                `;
+
+                // Global değişkene kaydet (download için)
+                window.sessionJSON = jsonData;
+
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div class="warning">
+                        <h3>❌ Hata!</h3>
+                        <p>Session bilgileri export edilemedi: ${error.message}</p>
+                        <p><strong>Not:</strong> Bu sayfayı WhatsApp Web'in açık olduğu tarayıcıda açmanız gerekiyor.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function downloadJSON() {
+            if (!window.sessionJSON) {
+                alert('Önce session bilgilerini export edin!');
+                return;
+            }
+
+            const blob = new Blob([window.sessionJSON], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'whatsapp-session.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
+
