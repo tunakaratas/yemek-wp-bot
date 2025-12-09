@@ -2,6 +2,18 @@ const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const axios = require('axios');
 
+// Admin panel API URL
+const ADMIN_API_URL = process.env.ADMIN_API_URL || 'http://localhost:3001';
+
+// Admin paneline veri gönder
+async function sendToAdminPanel(endpoint, data) {
+    try {
+        await axios.post(`${ADMIN_API_URL}/api/${endpoint}`, data, { timeout: 1000 });
+    } catch (error) {
+        // Admin panel çalışmıyorsa sessizce geç
+    }
+}
+
 // Bot ayarları
 const config = {
     // Yemek API endpoint'i - Local API sunucusu
@@ -400,8 +412,8 @@ client.on('message', async (message) => {
                     });
                 }
             } catch (mentionError) {
-                if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
-                    isMentionedForUnknown = messageData.mentionedJid.some(id => {
+                if (rawMessageData.mentionedJid && Array.isArray(rawMessageData.mentionedJid)) {
+                    isMentionedForUnknown = rawMessageData.mentionedJid.some(id => {
                         const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                         const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                         return cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
@@ -456,11 +468,11 @@ client.on('message', async (message) => {
                     }
                 } catch (mentionError) {
                     console.log(`   getMentions() hatası, alternatif yöntem deneniyor...`);
-                    // Alternatif yöntem: Mesaj verisinden mention kontrolü
-                    if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
+                // Alternatif yöntem: Mesaj verisinden mention kontrolü
+                if (rawMessageData.mentionedJid && Array.isArray(rawMessageData.mentionedJid)) {
                         console.log(`   mentionedJid:`, messageData.mentionedJid);
                         console.log(`   Bot numarası: ${botNumber}`);
-                        isMentionedForCommand = messageData.mentionedJid.some(id => {
+                        isMentionedForCommand = rawMessageData.mentionedJid.some(id => {
                             const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                             const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                             console.log(`   Karşılaştırma: cleanId=${cleanId}, botCleanId=${botCleanId}`);
@@ -530,8 +542,8 @@ client.on('message', async (message) => {
         }
         
         // 5428055983 numarası etiketlenmişse hiçbir şey yapma
-        if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
-            const blockedMentioned = messageData.mentionedJid.some(id => {
+        if (rawMessageData.mentionedJid && Array.isArray(rawMessageData.mentionedJid)) {
+            const blockedMentioned = rawMessageData.mentionedJid.some(id => {
                 const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                 return cleanId === BLOCKED_NUMBER || cleanId.includes(BLOCKED_NUMBER) || id.includes(BLOCKED_NUMBER);
             });
@@ -590,7 +602,7 @@ client.on('message', async (message) => {
                 // WhatsApp'ta mention'lar mesaj verisinde bulunur
                 if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
                     console.log(`   mentionedJid bulundu:`, messageData.mentionedJid);
-                    isMentioned = messageData.mentionedJid.some(id => {
+                    isMentioned = rawMessageData.mentionedJid.some(id => {
                         const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                         const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                         console.log(`   Karşılaştırma: ${cleanId} === ${botCleanId}?`);
