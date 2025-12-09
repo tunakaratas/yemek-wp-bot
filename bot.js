@@ -192,7 +192,7 @@ const client = new Client({
         dataPath: './.wwebjs_auth'
     }),
     puppeteer: {
-        headless: false, // Görsel tarayıcı açılsın
+        headless: true, // Headless sunucu için true
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -204,7 +204,12 @@ const client = new Client({
             '--disable-blink-features=AutomationControlled',
             '--disable-features=IsolateOrigins,site-per-process',
             '--window-size=1920,1080',
-            '--start-maximized'
+            '--start-maximized',
+            '--disable-extensions',
+            '--disable-software-rasterizer',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding'
         ],
         executablePath: undefined,
         // Daha uzun timeout'lar
