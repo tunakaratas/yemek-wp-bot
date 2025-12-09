@@ -283,9 +283,26 @@ client.on('ready', async () => {
     
     // Botun pushname'ini al (kaydedilen isim)
     try {
-        const botContact = await client.getContactById(client.info.wid._serialized);
-        botInfo.pushname = botContact.pushname || botContact.name || null;
-        console.log('👤 Bot ismi (pushname):', botInfo.pushname || '(isim kaydedilmemiş)');
+        // Önce client.info'dan dene
+        if (client.info && client.info.pushname) {
+            botInfo.pushname = client.info.pushname;
+            console.log('👤 Bot ismi (pushname):', botInfo.pushname);
+        } else {
+            // Alternatif: getContactById dene
+            try {
+                const botContact = await client.getContactById(client.info.wid._serialized);
+                botInfo.pushname = botContact.pushname || botContact.name || null;
+                if (botInfo.pushname) {
+                    console.log('👤 Bot ismi (contact):', botInfo.pushname);
+                }
+            } catch (contactError) {
+                console.log('⚠️  Bot ismi alınamadı (contact):', contactError.message);
+            }
+        }
+        
+        if (!botInfo.pushname) {
+            console.log('⚠️  Bot ismi bulunamadı - sadece numara ile mention çalışacak');
+        }
     } catch (error) {
         console.log('⚠️  Bot ismi alınamadı:', error.message);
     }
