@@ -328,10 +328,22 @@ client.on('message', async (message) => {
         const messageData = message.rawData || {};
         
         // EN ÖNCE komut kontrolü yap (her şeyden önce!)
-        const command = parseCommand(messageBody);
+        // Mesajdan mention'ı temizle ve sadece komutu kontrol et
+        let cleanMessageBody = messageBody;
+        // Mention'ları temizle (örneğin "@bot help" -> "help")
+        if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
+            // Mention varsa mesajdan temizle
+            messageData.mentionedJid.forEach(mentionedId => {
+                const cleanId = mentionedId.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                cleanMessageBody = cleanMessageBody.replace(new RegExp(`@${cleanId}`, 'gi'), '').trim();
+            });
+        }
+        
+        const command = parseCommand(cleanMessageBody);
         if (command) {
             console.log(`\n🔍 Komut tespit edildi: ${command}`);
-            console.log(`   Mesaj: ${messageBody}`);
+            console.log(`   Orijinal mesaj: ${messageBody}`);
+            console.log(`   Temizlenmiş mesaj: ${cleanMessageBody}`);
             
             // Komut varsa mention kontrolü yap (komutlar için mention gerekli)
             let isMentionedForCommand = false;
@@ -357,6 +369,8 @@ client.on('message', async (message) => {
                     });
                 }
             }
+            
+            console.log(`   Mention kontrolü: ${isMentionedForCommand}`);
             
             if (isMentionedForCommand) {
                 console.log(`   ✅ Bot mention edildi, komut işlenecek`);
@@ -390,6 +404,7 @@ client.on('message', async (message) => {
                 }
                 
                 // Komutu işle
+                console.log(`   🚀 Komut işleniyor: ${command}`);
                 await handleCommand(chat, message, command);
                 rateLimiter.setCooldown(userId, groupId);
                 return; // Komut işlendi, normal akışa devam etme
