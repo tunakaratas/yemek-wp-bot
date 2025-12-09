@@ -352,26 +352,43 @@ client.on('message', async (message) => {
             // Mention kontrolü - önce getMentions() dene
             try {
                 const mentions = await message.getMentions();
+                console.log(`   getMentions() sonucu:`, mentions?.length || 0, 'mention');
                 if (mentions && mentions.length > 0) {
-                    isMentionedForCommand = mentions.some(contact => {
+                    mentions.forEach(contact => {
                         if (contact && contact.id) {
-                            return contact.id.user === botNumber || contact.id._serialized?.includes(botNumber);
+                            const contactUser = contact.id.user || '';
+                            const contactSerialized = contact.id._serialized || '';
+                            console.log(`   Mention kontrolü: contact.user=${contactUser}, botNumber=${botNumber}`);
+                            if (contactUser === botNumber || contactSerialized.includes(botNumber)) {
+                                isMentionedForCommand = true;
+                            }
                         }
-                        return false;
                     });
                 }
             } catch (mentionError) {
+                console.log(`   getMentions() hatası, alternatif yöntem deneniyor...`);
                 // Alternatif yöntem: Mesaj verisinden mention kontrolü
                 if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
+                    console.log(`   mentionedJid:`, messageData.mentionedJid);
+                    console.log(`   Bot numarası: ${botNumber}`);
                     isMentionedForCommand = messageData.mentionedJid.some(id => {
                         const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                         const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
-                        return cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
+                        console.log(`   Karşılaştırma: cleanId=${cleanId}, botCleanId=${botCleanId}`);
+                        const match = cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
+                        if (match) console.log(`   ✅ Eşleşme bulundu!`);
+                        return match;
                     });
                 }
             }
             
-            console.log(`   Mention kontrolü: ${isMentionedForCommand}`);
+            // Eğer hala mention bulunamadıysa, mesaj içeriğinde @ işareti varsa mention say
+            if (!isMentionedForCommand && messageBody.includes('@')) {
+                console.log(`   Mesaj içeriğinde @ işareti var, mention olarak kabul ediliyor`);
+                isMentionedForCommand = true;
+            }
+            
+            console.log(`   Mention kontrolü sonucu: ${isMentionedForCommand}`);
             
             if (isMentionedForCommand) {
                 console.log(`   ✅ Bot mention edildi, komut işlenecek`);
