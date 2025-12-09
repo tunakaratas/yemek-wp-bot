@@ -848,9 +848,6 @@ async function sendHelpMessage(chat, message) {
 // Haftalık menü gönder
 async function sendWeeklyMenu(chat, message) {
     try {
-        const loadingMsg = await message.reply('📅 Haftalık menü getiriliyor...');
-        rateLimiter.messageSent();
-        
         const today = new Date();
         const menus = [];
         
@@ -883,10 +880,6 @@ async function sendWeeklyMenu(chat, message) {
             } catch (e) {
                 // Hata durumunda devam et
             }
-        }
-        
-        if (loadingMsg) {
-            await loadingMsg.delete();
         }
         
         // Haftalık menü mesajını formatla
@@ -958,17 +951,6 @@ async function sendYemekBilgisi(chat, message, requestedTarih = null) {
     try {
         // Rate limiting - mesaj göndermeden önce rastgele bekle
         await rateLimiter.randomDelay();
-        
-        // "Yükleniyor..." mesajı gönder
-        let loadingMsg;
-        try {
-            loadingMsg = await message.reply('🍽️ Yemek menüsü getiriliyor...');
-            rateLimiter.messageSent(); // Mesaj sayacını güncelle
-        } catch (sendError) {
-            console.error('⚠️  Mesaj gönderme hatası (rate limit olabilir):', sendError.message);
-            // Hata durumunda sessizce geç, tekrar deneme
-            return;
-        }
 
         // Tarih belirleme: İstenen tarih varsa onu kullan, yoksa bugün
         const today = new Date();
@@ -1055,9 +1037,6 @@ async function sendYemekBilgisi(chat, message, requestedTarih = null) {
         // Eğer hiç veri bulunamadıysa ve özel bir tarih istenmişse
         if (!veriBulundu && requestedTarih) {
             try {
-                if (loadingMsg) {
-                    await loadingMsg.delete();
-                }
                 await chat.sendMessage('sıçma amk daha eklemedik veriyi');
                 rateLimiter.messageSent();
                 console.log(`   ⚠️  Veri bulunamadı, uyarı mesajı gönderildi`);
@@ -1073,14 +1052,10 @@ async function sendYemekBilgisi(chat, message, requestedTarih = null) {
         // Rate limiting - mesaj göndermeden önce tekrar rastgele bekle
         await rateLimiter.randomDelay();
         
-        // Loading mesajını sil ve yeni mesajı gönder
+        // Mesajı gönder
         try {
             console.log(`   📤 Mesaj gönderiliyor... (Uzunluk: ${mesaj.length} karakter)`);
             console.log(`   📝 Mesaj önizleme: ${mesaj.substring(0, 100)}...`);
-            
-            if (loadingMsg) {
-                await loadingMsg.delete();
-            }
             
             // message.reply kullan (daha güvenilir)
             const sentMessage = await message.reply(mesaj);
