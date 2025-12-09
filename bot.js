@@ -575,6 +575,33 @@ client.on('message', async (message) => {
                 isMentioned = true;
                 if (tarih !== null) {
                     console.log(`   ✅ Özel mesaj - tarih sorgusu tespit edildi (${tarih}), menü gösterilecek`);
+                    // Tarih sorgusu varsa direkt menü göster (mention kontrolüne gerek yok)
+                    const userId = message.from;
+                    const groupId = chat.id._serialized || chat.id;
+                    
+                    const userRequestCheck = rateLimiter.canUserRequest(userId);
+                    if (!userRequestCheck.canRequest) {
+                        console.log(`   ⚠️  Rate limit: Kullanıcı çok fazla istek gönderdi.`);
+                        try {
+                            await message.reply(`⏳ Çok fazla istek gönderdiniz. Lütfen ${userRequestCheck.remaining} dakika sonra tekrar deneyin.`);
+                        } catch (e) { }
+                        return;
+                    }
+                    
+                    const cooldownCheck = rateLimiter.isOnCooldown(userId, groupId);
+                    if (cooldownCheck.onCooldown) {
+                        console.log(`   ⏳ Cooldown: ${cooldownCheck.remaining} saniye kaldı`);
+                        try {
+                            await message.reply(`⏳ Lütfen ${cooldownCheck.remaining} saniye bekleyin.`);
+                        } catch (e) { }
+                        return;
+                    }
+                    
+                    await rateLimiter.queueRequest(async () => {
+                        await sendYemekBilgisi(chat, message, tarih);
+                    });
+                    rateLimiter.setCooldown(userId, groupId);
+                    return; // Tarih sorgusu işlendi, normal akışa devam etme
                 } else {
                     console.log(`   ✅ Özel mesaj - yemek/menü kelimesi tespit edildi, menü gösterilecek`);
                 }
