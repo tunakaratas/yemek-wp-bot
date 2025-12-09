@@ -693,6 +693,7 @@ client.on('message', async (message) => {
                     rawMessageData.mentionedJids,
                     rawMessageData.mentions,
                     rawMessageData.nonJidMentions,
+                    rawMessageData.groupMentions, // WhatsApp'ta grup mention'ları burada olabilir
                 ];
                 
                 // rawMessageData'nın tüm key'lerini kontrol et
@@ -728,7 +729,7 @@ client.on('message', async (message) => {
                             const match = match1 || match2 || match3;
                             
                             if (match) {
-                                console.log(`   ✅ TAM EŞLEŞME BULUNDU: "${idStr}" === "${botNumberClean}"`);
+                                console.log(`   ✅ TAM EŞLEŞME: "${idStr}" === "${botNumberClean}"`);
                             } else {
                                 console.log(`   ❌ EŞLEŞME YOK: "${idStr}" !== "${botNumberClean}"`);
                             }
