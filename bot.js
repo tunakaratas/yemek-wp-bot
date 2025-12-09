@@ -698,16 +698,25 @@ async function sendYemekBilgisi(chat, message, requestedTarih = null) {
                 await loadingMsg.delete();
             }
             
-            await chat.sendMessage(mesaj);
+            // message.reply kullan (daha güvenilir)
+            const sentMessage = await message.reply(mesaj);
             rateLimiter.messageSent(); // Mesaj sayacını güncelle
             
-            console.log(`   ✅ Mesaj başarıyla gönderildi`);
+            console.log(`   ✅ Mesaj başarıyla gönderildi (ID: ${sentMessage.id._serialized || 'N/A'})`);
             console.log(`   📊 Günlük: ${rateLimiter.dailyMessageCount}/${ANTI_BAN_CONFIG.DAILY_MESSAGE_LIMIT}, Saatlik: ${rateLimiter.hourlyMessageCount}/${ANTI_BAN_CONFIG.HOURLY_MESSAGE_LIMIT}`);
         } catch (sendError) {
             console.error('⚠️  Mesaj gönderme hatası:', sendError.message);
-            // Hata durumunda sessizce geç, spam gibi görünmesin
-            if (sendError.message.includes('rate') || sendError.message.includes('limit')) {
-                console.log('   ⚠️  Rate limit tespit edildi, mesaj gönderilmedi');
+            console.error('⚠️  Hata detayı:', sendError);
+            // Hata durumunda chat.sendMessage ile dene
+            try {
+                await chat.sendMessage(mesaj);
+                rateLimiter.messageSent();
+                console.log(`   ✅ Alternatif yöntemle mesaj gönderildi`);
+            } catch (altError) {
+                console.error('⚠️  Alternatif yöntem de başarısız:', altError.message);
+                if (altError.message.includes('rate') || altError.message.includes('limit')) {
+                    console.log('   ⚠️  Rate limit tespit edildi, mesaj gönderilmedi');
+                }
             }
         }
         
