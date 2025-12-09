@@ -257,7 +257,7 @@ client.on('ready', () => {
     retryCount = 0; // Başarılı bağlantıda retry sayacını sıfırla
     console.log('\n✅✅✅ WhatsApp bot hazır! ✅✅✅');
     console.log('📱 Bot numarası:', client.info.wid.user);
-    console.log('🎉 Artık grup mesajlarını dinliyor...\n');
+    console.log('🎉 Artık grup ve özel mesajları dinliyor...\n');
     
     // Bot numarasını config'e kaydet
     if (!config.BOT_NUMBER) {
@@ -511,59 +511,73 @@ client.on('message', async (message) => {
             return;
         }
 
-        // Komut yoksa normal mention kontrolü yap
-        // Mention kontrolü - önce getMentions() dene, hata olursa alternatif yöntem kullan
-        try {
-            const mentions = await message.getMentions();
-            if (mentions && mentions.length > 0) {
-                isMentioned = mentions.some(contact => {
-                    if (contact && contact.id) {
-                        return contact.id.user === botNumber || contact.id._serialized?.includes(botNumber);
-                    }
-                    return false;
-                });
+        // Komut yoksa normal mention kontrolü yap (özel mesajlarda mention gerekmez)
+        if (isPrivate) {
+            // Özel mesajlarda direkt mesaj içeriğine bak
+            const lowerBody = messageBody.toLowerCase();
+            if (lowerBody.includes('yemek') || 
+                lowerBody.includes('menü') || 
+                lowerBody.includes('menu') || 
+                lowerBody.includes('ne var') ||
+                lowerBody.includes('bugün ne var') ||
+                lowerBody.includes('yarın') ||
+                lowerBody.includes('help') ||
+                lowerBody.includes('yardım')) {
+                isMentioned = true;
+                console.log(`   ✅ Özel mesaj - yemek/menü kelimesi tespit edildi`);
             }
-        } catch (mentionError) {
-            // Alternatif yöntem: Mesaj verisinden mention kontrolü
-            const messageBody = message.body || '';
-            const messageData = message.rawData || {};
-            
-            // Debug: Ham veriyi logla
-            console.log(`\n🔍 Mention kontrolü - Grup: ${chat.name}`);
-            console.log(`   Bot numarası: ${botNumber}`);
-            console.log(`   Mesaj içeriği: ${messageBody.substring(0, 100)}`);
-            console.log(`   rawData:`, JSON.stringify(messageData).substring(0, 200));
-            
-            // WhatsApp'ta mention'lar mesaj verisinde bulunur
-            if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
-                console.log(`   mentionedJid bulundu:`, messageData.mentionedJid);
-                isMentioned = messageData.mentionedJid.some(id => {
-                    const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
-                    const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
-                    console.log(`   Karşılaştırma: ${cleanId} === ${botCleanId}?`);
-                    return cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
-                });
-            }
-            
-            // Eğer mentionedJid yoksa, mesaj içeriğinde @ işareti veya yemek kelimesi var mı kontrol et
-            // AMA komut değilse (komutlar zaten yukarıda işlendi)
-            if (!isMentioned && messageBody) {
-                const lowerBody = messageBody.toLowerCase();
-                
-                // Komut değilse ve yemek/menü kelimesi varsa cevap ver
-                // Komut kontrolü zaten yukarıda yapıldı, buraya gelirse komut değil demektir
-                if (messageBody.includes('@') || 
-                    (lowerBody.includes('yemek') && !lowerBody.startsWith('/')) || 
-                    (lowerBody.includes('menü') && !lowerBody.startsWith('/')) || 
-                    (lowerBody.includes('menu') && !lowerBody.startsWith('/')) || 
-                    lowerBody.includes('ne var') ||
-                    lowerBody.includes('bugün ne var')) {
-                    console.log(`   ✅ Mention veya yemek kelimesi tespit edildi, cevap verilecek`);
-                    isMentioned = true;
+        } else {
+            // Grup mesajlarında mention kontrolü yap
+            // Mention kontrolü - önce getMentions() dene, hata olursa alternatif yöntem kullan
+            try {
+                const mentions = await message.getMentions();
+                if (mentions && mentions.length > 0) {
+                    isMentioned = mentions.some(contact => {
+                        if (contact && contact.id) {
+                            return contact.id.user === botNumber || contact.id._serialized?.includes(botNumber);
+                        }
+                        return false;
+                    });
                 }
+            } catch (mentionError) {
+                // Alternatif yöntem: Mesaj verisinden mention kontrolü
+                // Debug: Ham veriyi logla
+                console.log(`\n🔍 Mention kontrolü - Grup: ${chat.name}`);
+                console.log(`   Bot numarası: ${botNumber}`);
+                console.log(`   Mesaj içeriği: ${messageBody.substring(0, 100)}`);
+                console.log(`   rawData:`, JSON.stringify(messageData).substring(0, 200));
+                
+                // WhatsApp'ta mention'lar mesaj verisinde bulunur
+                if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
+                    console.log(`   mentionedJid bulundu:`, messageData.mentionedJid);
+                    isMentioned = messageData.mentionedJid.some(id => {
+                        const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                        const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                        console.log(`   Karşılaştırma: ${cleanId} === ${botCleanId}?`);
+                        return cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
+                    });
+                }
+                
+                // Eğer mentionedJid yoksa, mesaj içeriğinde @ işareti veya yemek kelimesi var mı kontrol et
+                // AMA komut değilse (komutlar zaten yukarıda işlendi)
+                if (!isMentioned && messageBody) {
+                    const lowerBody = messageBody.toLowerCase();
+                    
+                    // Komut değilse ve yemek/menü kelimesi varsa cevap ver
+                    // Komut kontrolü zaten yukarıda yapıldı, buraya gelirse komut değil demektir
+                    if (messageBody.includes('@') || 
+                        (lowerBody.includes('yemek') && !lowerBody.startsWith('/')) || 
+                        (lowerBody.includes('menü') && !lowerBody.startsWith('/')) || 
+                        (lowerBody.includes('menu') && !lowerBody.startsWith('/')) || 
+                        lowerBody.includes('ne var') ||
+                        lowerBody.includes('bugün ne var')) {
+                        console.log(`   ✅ Mention veya yemek kelimesi tespit edildi, cevap verilecek`);
+                        isMentioned = true;
+                    }
+                }
+                
+                console.log(`   Sonuç: Mention = ${isMentioned}\n`);
             }
-            
-            console.log(`   Sonuç: Mention = ${isMentioned}\n`);
         }
 
         if (isMentioned) {
