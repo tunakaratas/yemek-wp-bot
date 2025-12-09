@@ -562,15 +562,22 @@ client.on('message', async (message) => {
         // Komut yoksa normal mention kontrolü yap (özel mesajlarda mention gerekmez)
         if (isPrivate) {
             // Özel mesajlarda: Herhangi bir mesaj yazılırsa help göster
-            // Eğer yemek/menü kelimesi varsa direkt menü göster
+            // Eğer yemek/menü kelimesi varsa veya tarih sorgusu varsa direkt menü göster
             const lowerBody = messageBody.toLowerCase();
+            const tarih = extractTarihFromMessage(messageBody);
+            
             if (lowerBody.includes('yemek') || 
                 lowerBody.includes('menü') || 
                 lowerBody.includes('menu') || 
                 lowerBody.includes('ne var') ||
-                lowerBody.includes('bugün ne var')) {
+                lowerBody.includes('bugün ne var') ||
+                tarih !== null) { // Tarih sorgusu varsa da menü göster
                 isMentioned = true;
-                console.log(`   ✅ Özel mesaj - yemek/menü kelimesi tespit edildi, menü gösterilecek`);
+                if (tarih !== null) {
+                    console.log(`   ✅ Özel mesaj - tarih sorgusu tespit edildi (${tarih}), menü gösterilecek`);
+                } else {
+                    console.log(`   ✅ Özel mesaj - yemek/menü kelimesi tespit edildi, menü gösterilecek`);
+                }
             } else if (messageBody.trim().length > 0) {
                 // Herhangi bir mesaj yazıldıysa help göster
                 console.log(`   ✅ Özel mesaj - herhangi bir mesaj yazıldı, help gösterilecek`);
