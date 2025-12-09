@@ -1196,7 +1196,7 @@ function formatYemekMesaji(kahvaltiBilgisi, aksamBilgisi, tarih, requestedTarih 
     
     // Yardım mesajı ve geliştirici bilgisi
     mesaj += `\n\n━━━━━━━━━━━━━━━━━━━━\n`;
-    mesaj += `💡 Yapabileceklerinizi öğrenmek için lütfen @bot yardım yazın\n\n`;
+    mesaj += `💡 Yapabileceklerinizi öğrenmek için lütfen "@bot yardım" yazın\n\n`;
     mesaj += `━━━━━━━━━━━━━━━━━━━━\n`;
     mesaj += `@5428055983 (Tuna Karataş) tarafından geliştirilmiştir.`;
     
