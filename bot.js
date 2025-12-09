@@ -341,6 +341,49 @@ client.on('message', async (message) => {
         console.log(`   Temizlenmiş mesaj: "${cleanMessageBody}"`);
         
         const command = parseCommand(cleanMessageBody);
+        
+        // Eğer komut yoksa ama mesaj tek kelime ve mention varsa, bilinmeyen komut olabilir
+        if (!command && cleanMessageBody && !cleanMessageBody.includes(' ') && messageBody.includes('@')) {
+            // Tek kelime ve mention var - bilinmeyen komut olabilir
+            console.log(`\n⚠️  Bilinmeyen komut tespit edildi: "${cleanMessageBody}"`);
+            let isMentionedForUnknown = false;
+            
+            // Mention kontrolü
+            try {
+                const mentions = await message.getMentions();
+                if (mentions && mentions.length > 0) {
+                    isMentionedForUnknown = mentions.some(contact => {
+                        if (contact && contact.id) {
+                            return contact.id.user === botNumber || contact.id._serialized?.includes(botNumber);
+                        }
+                        return false;
+                    });
+                }
+            } catch (mentionError) {
+                if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
+                    isMentionedForUnknown = messageData.mentionedJid.some(id => {
+                        const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                        const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                        return cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
+                    });
+                }
+            }
+            
+            if (!isMentionedForUnknown && messageBody.includes('@')) {
+                isMentionedForUnknown = true;
+            }
+            
+            if (isMentionedForUnknown) {
+                try {
+                    await message.reply(`⚠️ Bilinmeyen komut: "${cleanMessageBody}"\n\n📋 Kullanılabilir komutlar:\n• help - Yardım\n• menu - Bugünün menüsü\n• yarın - Yarının menüsü\n• haftalık - Haftalık menü\n\nTüm komutlar için: @bot help`);
+                    rateLimiter.messageSent();
+                } catch (e) {
+                    console.error('⚠️  Bilinmeyen komut uyarısı gönderilemedi:', e.message);
+                }
+                return;
+            }
+        }
+        
         if (command) {
             console.log(`\n🔍 Komut tespit edildi: ${command}`);
             console.log(`   Orijinal mesaj: ${messageBody}`);
