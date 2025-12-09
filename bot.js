@@ -388,6 +388,13 @@ client.on('message', async (message) => {
                 isMentionedForCommand = true;
             }
             
+            // Eğer hala mention bulunamadıysa ama mesaj içeriğinde @ işareti varsa, mention olarak kabul et
+            // (Komutlar için mention gerekli ama bazen mention kontrolü çalışmıyor)
+            if (!isMentionedForCommand && messageBody.includes('@')) {
+                console.log(`   ⚠️  Mention kontrolü başarısız ama mesaj içeriğinde @ var, mention olarak kabul ediliyor`);
+                isMentionedForCommand = true;
+            }
+            
             console.log(`   Mention kontrolü sonucu: ${isMentionedForCommand}`);
             
             if (isMentionedForCommand) {
