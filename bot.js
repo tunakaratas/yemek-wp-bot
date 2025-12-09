@@ -669,23 +669,64 @@ client.on('message', async (message) => {
                 }
             }
             
-            // 3. Son çare: Mesaj içeriğinde bot numarası geçiyor mu kontrol et (sadece @ ile başlayan)
+            // 3. Son çare: Mesaj içeriğinde bot numarası geçiyor mu kontrol et
             if (!isMentioned && messageBody.includes('@')) {
-                // Mesaj içinde @botNumber veya @botNumberClean formatında geçiyor mu?
-                const mentionPatterns = [
-                    `@${botNumberClean}`,
-                    `@${botNumber}`,
-                    `@${botNumberClean}@`,
-                    `@${botNumber}@`
+                // Mesaj içinde bot numarası geçiyor mu? (farklı formatlar)
+                // Örnek: @905335445983, @5335445983, 905335445983, 5335445983
+                const botNumberVariants = [
+                    botNumberClean, // 905335445983
+                    botNumberClean.replace(/^90/, ''), // 5335445983 (90 kaldırılmış)
+                    botNumberClean.replace(/^905/, ''), // 335445983 (905 kaldırılmış)
                 ];
                 
-                const hasBotMention = mentionPatterns.some(pattern => {
-                    return messageBody.includes(pattern) || messageBody.toLowerCase().includes(pattern.toLowerCase());
+                // Mesaj içinde bu numaralardan biri geçiyor mu?
+                const hasBotMention = botNumberVariants.some(num => {
+                    // @ ile başlayan mention kontrolü
+                    const mentionPattern = `@${num}`;
+                    const hasMention = messageBody.includes(mentionPattern) || 
+                                      messageBody.toLowerCase().includes(mentionPattern.toLowerCase());
+                    
+                    if (hasMention) {
+                        console.log(`   ✅ Mesaj içeriğinde bot numarası mention'ı bulundu: ${mentionPattern}`);
+                        return true;
+                    }
+                    return false;
                 });
                 
                 if (hasBotMention) {
-                    console.log(`   ✅ Mesaj içeriğinde bot numarası mention'ı bulundu!`);
                     isMentioned = true;
+                } else {
+                    console.log(`   ⚠️  Mesaj içeriğinde bot numarası bulunamadı`);
+                }
+            }
+            
+            // 4. rawMessageData'yı daha detaylı kontrol et
+            if (!isMentioned && rawMessageData) {
+                console.log(`   🔍 rawMessageData detaylı kontrol:`, JSON.stringify(rawMessageData).substring(0, 500));
+                // Farklı alanlarda mention bilgisi olabilir
+                const possibleMentionFields = [
+                    rawMessageData.mentionedJid,
+                    rawMessageData.mentionedJidList,
+                    rawMessageData.mentionedJids,
+                    rawMessageData.mentions,
+                ];
+                
+                for (const field of possibleMentionFields) {
+                    if (Array.isArray(field) && field.length > 0) {
+                        console.log(`   ✅ Alternatif mention alanı bulundu:`, field);
+                        const found = field.some(id => {
+                            let cleanId = id.toString().replace(/[^\d]/g, '');
+                            const match = cleanId === botNumberClean || cleanId.includes(botNumberClean) || botNumberClean.includes(cleanId);
+                            if (match) {
+                                console.log(`   ✅✅✅ Alternatif alanda eşleşme bulundu! ✅✅✅`);
+                            }
+                            return match;
+                        });
+                        if (found) {
+                            isMentioned = true;
+                            break;
+                        }
+                    }
                 }
             }
             
