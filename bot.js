@@ -649,19 +649,6 @@ client.on('message', async (message) => {
             console.log(`\n🔍 MENTION KONTROLÜ - Grup: ${chat.name}`);
             console.log(`   Bot numarası: ${botNumber} (temiz: ${botNumberClean})`);
             
-            // Message object'inin tüm property'lerini kontrol et
-            console.log(`   Message keys:`, Object.keys(message).filter(k => k.toLowerCase().includes('mention') || k.toLowerCase().includes('id')));
-            
-            // rawMessageData'yı detaylı logla
-            if (rawMessageData) {
-                console.log(`   rawMessageData keys:`, Object.keys(rawMessageData));
-                const mentionKeys = Object.keys(rawMessageData).filter(k => k.toLowerCase().includes('mention'));
-                console.log(`   Mention içeren key'ler:`, mentionKeys);
-                for (const key of mentionKeys) {
-                    console.log(`   ${key}:`, rawMessageData[key]);
-                }
-            }
-            
             // 1. getMentions() ile kontrol et - SADECE TAM EŞLEŞME!
             try {
                 const mentions = await message.getMentions();
@@ -675,12 +662,10 @@ client.on('message', async (message) => {
                     isMentioned = mentions.some(contact => {
                         if (contact?.id) {
                             const contactUser = contact.id.user || '';
-                            // SADECE TAM EŞLEŞME - includes() YOK!
+                            // SADECE TAM EŞLEŞME
                             const match = contactUser === botNumber;
                             if (match) {
                                 console.log(`   ✅ getMentions() TAM EŞLEŞME: "${contactUser}" === "${botNumber}"`);
-                            } else {
-                                console.log(`   ❌ getMentions() EŞLEŞME YOK: "${contactUser}" !== "${botNumber}"`);
                             }
                             return match;
                         }
@@ -691,7 +676,7 @@ client.on('message', async (message) => {
                 console.log(`   getMentions() hatası:`, e.message);
             }
             
-            // 2. rawMessageData'dan kontrol et - SADECE TAM EŞLEŞME!
+            // 2. rawMessageData'dan kontrol et - TÜM ALANLARI KONTROL ET!
             if (!isMentioned && rawMessageData) {
                 // Tüm olası mention alanlarını kontrol et
                 const allFields = [
@@ -700,16 +685,19 @@ client.on('message', async (message) => {
                     rawMessageData.mentionedJids,
                     rawMessageData.mentions,
                     rawMessageData.nonJidMentions,
-                    rawMessageData.groupMentions, // WhatsApp'ta grup mention'ları burada olabilir
+                    rawMessageData.groupMentions,
                 ];
                 
                 // rawMessageData'nın tüm key'lerini kontrol et
                 const allKeys = Object.keys(rawMessageData || {});
                 const mentionKeys = allKeys.filter(k => k.toLowerCase().includes('mention'));
                 
+                console.log(`   rawMessageData mention key'leri:`, mentionKeys);
+                
                 for (const key of mentionKeys) {
                     const field = rawMessageData[key];
                     if (Array.isArray(field) && field.length > 0) {
+                        console.log(`   "${key}" alanı bulundu:`, field);
                         allFields.push(field);
                     }
                 }
@@ -718,34 +706,35 @@ client.on('message', async (message) => {
                 for (let i = 0; i < allFields.length; i++) {
                     const field = allFields[i];
                     if (Array.isArray(field) && field.length > 0) {
+                        console.log(`   Field[${i}] kontrol ediliyor (${field.length} mention):`, field);
                         const found = field.some(id => {
                             const idStr = id.toString();
+                            console.log(`     ID kontrolü: "${idStr}"`);
                             
-                            // SADECE TAM EŞLEŞME - includes() KULLANMA!
-                            // Farklı formatları dene ama SADECE TAM EŞLEŞME
+                            // Farklı formatları dene - SADECE TAM EŞLEŞME
                             let cleanId = idStr.replace(/[@\D]/g, '');
-                            let match1 = cleanId === botNumberClean; // TAM EŞLEŞME
+                            let match1 = cleanId === botNumberClean;
                             
                             let cleanId2 = idStr.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@lid', '').replace('@', '').replace(/[^\d]/g, '');
-                            let match2 = cleanId2 === botNumberClean; // TAM EŞLEŞME
+                            let match2 = cleanId2 === botNumberClean;
                             
-                            // @c.us formatında TAM EŞLEŞME
                             let match3 = idStr === `${botNumber}@c.us` || idStr === `${botNumberClean}@c.us`;
+                            let match4 = idStr === `${botNumber}@s.whatsapp.net` || idStr === `${botNumberClean}@s.whatsapp.net`;
                             
-                            // SADECE TAM EŞLEŞME - includes() YOK!
-                            const match = match1 || match2 || match3;
+                            // SADECE TAM EŞLEŞME
+                            const match = match1 || match2 || match3 || match4;
                             
                             if (match) {
-                                console.log(`   ✅ TAM EŞLEŞME: "${idStr}" === "${botNumberClean}"`);
+                                console.log(`     ✅ TAM EŞLEŞME: "${idStr}" === "${botNumberClean}"`);
                             } else {
-                                console.log(`   ❌ EŞLEŞME YOK: "${idStr}" !== "${botNumberClean}"`);
+                                console.log(`     ❌ EŞLEŞME YOK: "${idStr}" !== "${botNumberClean}"`);
                             }
                             
                             return match;
                         });
                         if (found) {
                             isMentioned = true;
-                            console.log(`   ✅✅✅ MENTION BULUNDU! (rawMessageData - TAM EŞLEŞME)`);
+                            console.log(`   ✅✅✅ MENTION BULUNDU! (rawMessageData Field[${i}])`);
                             break;
                         }
                     }
