@@ -3,14 +3,16 @@
     "tarih": "2025-12-01",
     "kahvalti": [
       "Kaşarlı Omlet",
-      "Kek",
+      "Kakaolu Kek",
       "Beyaz Peynir",
       "Reçel Çeşitleri"
     ],
     "aksam": [
-      "Tavuk Izgara / Mantar Çorba",
-      "Enginar Yemeği / Tavuk Sote",
-      "Şehriyeli Pirinç Pilavı",
+      "Mercimek Çorba",
+      "Toyga Çorba",
+      "Tavuk Kavurma",
+      "Karışık Sebze Graten",
+      "Bulgur Pilavı",
       "Cacık"
     ]
   },
@@ -19,14 +21,16 @@
     "kahvalti": [
       "Zeytinli-Peynirli Açma",
       "Haşlanmış Yumurta",
-      "Beyaz Peynir",
-      "Bal ve Tereyağı"
+      "Yöresel Peynir",
+      "Bal ve Tereyağ"
     ],
     "aksam": [
-      "Ezogelin Çorba / Yayla Çorba",
-      "Hamburger Köfte / Sebze Graten",
-      "Salçalı Makarna",
-      "Trileçe"
+      "Köylü Çorba",
+      "Tavuk Çorba",
+      "Izgara Köfte",
+      "Biber Dolma",
+      "Makarna",
+      "Sütlaç"
     ]
   },
   "2025-12-03": {
@@ -38,10 +42,12 @@
       "Elma"
     ],
     "aksam": [
-      "Mercimek Çorba / Sebze Çorba",
-      "Sulu Köfte & Şakşuka / Acem Firik Pilavı",
-      "Bulgur Pilavı",
-      "Kıvırcık Salata"
+      "Ezogelin Çorba",
+      "Sebze Çorba",
+      "Tavuklu Sultan Kebabı",
+      "Karnabahar Kızartma",
+      "Şehriyeli Pirinç Pilavı",
+      "Karışık Salata"
     ]
   },
   "2025-12-04": {
@@ -53,25 +59,29 @@
       "Mevsim Sebzeleri Söğüş"
     ],
     "aksam": [
-      "Yeşil Mercimek Çorba / Arpa Çorba",
-      "Etli Sebze Yemeği / Bezelye Yemeği",
-      "Pirinç Pilavı",
-      "Havuç Tarator"
+      "Tarhana Çorba",
+      "Yayla Çorba",
+      "Orman Kebabı",
+      "Mücver",
+      "Peynirli Erişte",
+      "Mercimek Köftesi"
     ]
   },
   "2025-12-05": {
     "tarih": "2025-12-05",
     "kahvalti": [
-      "Simit",
       "Menemen",
-      "Haşlanmış Yumurta",
+      "Simit",
+      "Beyaz Peynir",
       "Tahinli Pekmez"
     ],
     "aksam": [
-      "Mantar Çorba / Tarhana Çorba",
-      "Şinitzel / Kabak Dolma",
-      "Yoğurtlu Makarna",
-      "Çoban Salata"
+      "Mercimek Çorba",
+      "Terbiyeli Şehriye Çorba",
+      "Tavuk Çökertme",
+      "Ispanak Yemeği",
+      "Bulgur Pilavı",
+      "Mevsim Salata"
     ]
   },
   "2025-12-06": {
@@ -83,10 +93,12 @@
       "Sürülebilir Çikolata"
     ],
     "aksam": [
-      "Tavuk Çorba / Yüksük Çorba",
-      "Kuru Fasulye / Soslu Karışık Kızartma",
-      "Erişteli Bulgur Pilavı",
-      "Kadayıf"
+      "Ezogelin Çorba",
+      "Düğün Çorba",
+      "Etsiz Nohut veya Kuru Fasulye",
+      "Karışık Kızartma",
+      "Şehriyeli Pirinç Pilavı",
+      "Baklava"
     ]
   },
   "2025-12-07": {
@@ -98,10 +110,12 @@
       "Mevsim Sebzeleri Söğüş"
     ],
     "aksam": [
-      "Erişteli Yeşil Mercimek / Havuç Çorba",
-      "Tepsi Kebabı / Patlıcan Musakka",
-      "Mısırlı Pirinç Pilavı",
-      "Pembe Sultan"
+      "Yüksük Çorba",
+      "Etli Çorba",
+      "Tavuk Fajita",
+      "Taze Fasulye",
+      "Sebzeli Bulgur Pilavı",
+      "Havuç Tarator"
     ]
   },
   "2025-12-08": {
@@ -113,10 +127,12 @@
       "Tahinli Pekmez"
     ],
     "aksam": [
-      "Mercimek Çorba / Mantar Çorba",
-      "Et Tantuni / Karnabahar Pane",
-      "Nohutlu Bulgur Pilavı",
-      "Haşhaşlı Revani"
+      "Mercimek Çorba",
+      "Sebze Çorba",
+      "Çoban Kavurma",
+      "Şakşuka",
+      "Pirinç Pilavı",
+      "Şekerpare"
     ]
   },
   "2025-12-09": {
@@ -128,9 +144,11 @@
       "Mevsim Sebzeleri Söğüş"
     ],
     "aksam": [
-      "Domates Çorba / Toyga Çorba",
-      "Tavuk Kavurma / Karışık Dolma",
-      "Soslu Makarna",
+      "Yayla Çorba",
+      "Domates Çorba",
+      "Çıtır Tavuk",
+      "Lahana Sarma",
+      "Makarna",
       "Karışık Salata"
     ]
   },
@@ -139,13 +157,16 @@
     "kahvalti": [
       "Karışık Pizza",
       "Haşlanmış Yumurta",
-      "Beyaz Peynir"
+      "Beyaz Peynir",
+      "Reçel Çeşitleri"
     ],
     "aksam": [
-      "Şehriye Çorba / Tutmaç Çorba",
-      "İnegöl Köfte / Mevsim Türlü",
-      "Pirinç Pilavı",
-      "Kabak Tatlısı"
+      "Köylü Çorba",
+      "Şehriye Çorba",
+      "Kuru Köfte",
+      "Bezelye Yemeği",
+      "Şehriyeli Pirinç Pilavı",
+      "Muzlu Magnolya"
     ]
   },
   "2025-12-11": {
@@ -153,30 +174,33 @@
     "kahvalti": [
       "Patatesli Yumurta",
       "Simit",
-      "Beyaz Peynir",
-      "Çilek Reçeli"
+      "Krem Peynir",
+      "Sürülebilir Çikolata"
     ],
     "aksam": [
-      "Ezogelin Çorba / Mercimek Çorba",
-      "Salçalı Makarna",
-      "Nohut Yemeği / Karışık Kızartma",
-      "Şehriyeli Pirinç Pilavı"
+      "Mercimek Çorba",
+      "Toyga Çorba",
+      "Tavuk Tantuni",
+      "Karışık Kızartma",
+      "Spagetti",
+      "Ayran"
     ]
   },
   "2025-12-12": {
     "tarih": "2025-12-12",
     "kahvalti": [
-      "Zeytinli-Peynirli Açma",
-      "Haşlanmış Yumurta",
       "Peynirli Börek",
-      "Simit",
-      "Beyaz Peynir"
+      "Haşlanmış Yumurta",
+      "Yöresel Peynir",
+      "Helva"
     ],
     "aksam": [
-      "Yoğurtlu Çorba / Yayla Çorba",
-      "Tavuk Kızartma / Tavuk Kavurma",
-      "Ege Salatası / Lahana Turşusu",
-      "Gırgırıklı Pılav"
+      "Ezogelin Çorba",
+      "Düğün Çorba",
+      "Etsiz Nohut veya Kuru Fasulye",
+      "Karnabahar Kızartma",
+      "Pirinç Pilavı",
+      "Mandalina"
     ]
   },
   "2025-12-13": {
@@ -188,10 +212,12 @@
       "Mevsim Sebzeleri Söğüş"
     ],
     "aksam": [
-      "Yayla Çorba / Mahluta Çorba",
-      "İzmir Köfte / Haşlanmış Tavuk",
-      "Soslu Makarna",
-      "Haydari"
+      "Tarhana Çorba",
+      "Yayla Çorba",
+      "İzmir Köfte",
+      "Ispanak Yemeği",
+      "Makarna",
+      "Patlıcan Ezme"
     ]
   },
   "2025-12-14": {
@@ -203,10 +229,12 @@
       "Tahinli Pekmez"
     ],
     "aksam": [
-      "Düğün Çorba / Yüksük Çorba",
-      "Tavuklu Pirinç Pilavı / Gözleme",
-      "Tiryakilik Pilavı",
-      "Gamişli Turşu"
+      "Ezogelin Çorba",
+      "Şehriye Çorba",
+      "Piliç Kavurma",
+      "Mücver",
+      "Bulgur Pilavı",
+      "Çikolatalı Pasta"
     ]
   },
   "2025-12-15": {
@@ -214,47 +242,50 @@
     "kahvalti": [
       "Kaşarlı Omlet",
       "Sade Poğaça",
-      "Kaşar Peynir",
-      "Bal ve Tereyağı"
+      "Beyaz Peynir",
+      "Bal ve Tereyağ"
     ],
     "aksam": [
       "Tarhana Çorba",
-      "Etli Tantuni (Savaş + Soğanlı)",
-      "Karnıyarık Kızartma (Yoğurtlu, Soslu)",
-      "Şehriyeli Piliç Pilavı",
+      "Toyga Çorba",
+      "Et Tantuni",
+      "Karışık Kızartma",
+      "Şehriyeli Pirinç Pilavı",
       "Ayran"
     ]
   },
   "2025-12-16": {
     "tarih": "2025-12-16",
     "kahvalti": [
-      "Sucuklu Yumurta",
-      "Dere Otlu Poğaça",
-      "Beyaz Peynir",
-      "Sosis"
+      "Karışık Kızartma",
+      "Haşlanmış Yumurta",
+      "Kaşar Peynir",
+      "Reçel Çeşitleri"
     ],
     "aksam": [
       "Mercimek Çorba",
-      "Tavuk Külbastı (Döner Dilim Patates)",
+      "Sebze Çorba",
+      "Tavuk Külbastı",
+      "İmambayıldı",
       "Sebzeli Bulgur Pilavı",
-      "Karışık Salata"
+      "Karışık salata"
     ]
   },
   "2025-12-17": {
     "tarih": "2025-12-17",
     "kahvalti": [
-      "Karışık Pizza",
-      "Haşlanmış Yumurta",
-      "Labne Peynir",
-      "Reçel Çeşitleri"
+      "Sade Omlet",
+      "Peynirli Milföy Börek",
+      "Yöresel Peynir",
+      "Mevsim Sebzeleri Söğüş"
     ],
     "aksam": [
-      "Yeşil Çorba",
+      "Yayla Çorba",
+      "Domates Çorba",
       "Izgara Köfte",
-      "Patates Kızartması",
-      "Soğan",
-      "Makarna (İsteğe göre soslu)",
-      "Turşular"
+      "Biber Dolma",
+      "Makarna",
+      "Tarator"
     ]
   },
   "2025-12-18": {
@@ -267,8 +298,10 @@
     ],
     "aksam": [
       "Ezogelin Çorba",
-      "Tavuklu Çıtır Burger (90 g hamburger ekmeği, 100 g patates)",
-      "Karışık Sebze Sote",
+      "Şehriye Çorba",
+      "Çıtır Tavuk Burger",
+      "Karışık Sebze Graten",
+      "Pirinç Pilavı",
       "Kadayıflı Muhallebi"
     ]
   },
@@ -276,16 +309,17 @@
     "tarih": "2025-12-19",
     "kahvalti": [
       "Peynirli Omlet",
-      "Haşlanmış Yumurta",
       "Sade Kek",
-      "Beyaz Peynir",
-      "Sürebilir Çikolata"
+      "Kaşar Peynir",
+      "Sürülebilir Çikolata"
     ],
     "aksam": [
-      "Yeşil Mercimek Çorba / Sütlaç Çorba",
-      "Tavuk Izgara / Zeytinyağlı Dolma",
+      "Tarhana Çorba",
+      "Sebze Çorba",
+      "Etli Çökertme Kebabı",
+      "Taze Fasulye",
       "Bulgur Pilavı",
-      "Salata"
+      "Mevsim Salata"
     ]
   },
   "2025-12-20": {
@@ -293,28 +327,33 @@
     "kahvalti": [
       "Patates Kızartması",
       "Haşlanmış Yumurta",
-      "Simit",
-      "Beyaz Peynir"
+      "Beyaz Peynir",
+      "Mevsim Sebzeleri Söğüş"
     ],
     "aksam": [
-      "Mahluta Çorba / Domates Çorba",
-      "Kuru Köfte / Yoğurtlu Makarna",
-      "Kısır"
+      "Tel Şehriye Çorba",
+      "Yayla Çorba",
+      "Tavuklu Elbasan Tava",
+      "Karnabahar Kızartma",
+      "Makarna",
+      "Mercimek Köftesi"
     ]
   },
   "2025-12-21": {
     "tarih": "2025-12-21",
     "kahvalti": [
-      "Sade Omlet",
-      "Beyaz Peynir",
-      "Kaşar Peynir",
-      "Helva"
+      "Menemen",
+      "Simit",
+      "Labne Peynir",
+      "Tahinli Pekmez"
     ],
     "aksam": [
-      "Tavuk Çorba / Pirinç Çorba",
-      "Kuru Fasulye / Barbunya Kızartma",
-      "Şehriyeli Bulgur Pilavı",
-      "Cacık"
+      "Mercimek Çorba",
+      "Düğün Çorba",
+      "Etsiz Nohut veya Kuru Fasulye",
+      "Karışık Kızartma",
+      "Şehriyeli Pirinç Pilavı",
+      "Baklava"
     ]
   },
   "2025-12-22": {
@@ -322,13 +361,15 @@
     "kahvalti": [
       "Zeytinli-Peynirli Açma",
       "Haşlanmış Yumurta",
-      "Beyaz Peynir",
-      "Tahinli Pekmez"
+      "Kaşar Peynir",
+      "Bal ve Tereyağ"
     ],
     "aksam": [
       "Köylü Çorba",
+      "Yayla Çorba",
+      "Çıtır Tavuk",
       "Lahana Sarma",
-      "Spagetti (İsteğe göre soslu)",
+      "Spagetti",
       "Mevsim Salata"
     ]
   },
@@ -342,8 +383,10 @@
     ],
     "aksam": [
       "Ezogelin Çorba",
+      "Şehriye Çorba",
       "Hünkar Beğendi",
-      "Şehriyeli Piliç Pilavı",
+      "Fellah Köfte",
+      "Şehriyeli Pirinç Pilavı",
       "Portakal"
     ]
   },
@@ -352,12 +395,14 @@
     "kahvalti": [
       "Patates Kızartması",
       "Haşlanmış Yumurta",
-      "Kaşar Peynir",
-      "Sürebilir Çikolata"
+      "Yöresel Peynir",
+      "Sürülebilir Çikolata"
     ],
     "aksam": [
       "Toyga Çorba",
-      "Tavuk Güveç (250 g / 100 g et)",
+      "Tarhana Çorba",
+      "Tavuk Çökertme",
+      "Karışık Sebze Graten",
       "Sebzeli Bulgur Pilavı",
       "Bisküvili Pasta"
     ]
@@ -366,14 +411,16 @@
     "tarih": "2025-12-25",
     "kahvalti": [
       "Kaşarlı Omlet",
-      "Sade Poğaça",
-      "Kaşar Peynir",
-      "Bal ve Tereyağı"
+      "Sade Açma",
+      "Beyaz Peynir",
+      "Helva"
     ],
     "aksam": [
       "Mercimek Çorba",
+      "Yüksük Çorba",
       "Patlıcan Musakka",
-      "Piliç Pilavı",
+      "Mücver",
+      "Pirinç Pilavı",
       "Havuç Tarator"
     ]
   },
@@ -386,25 +433,30 @@
       "Reçel Çeşitleri"
     ],
     "aksam": [
-      "Yüksük Çorba / Toyga Çorba",
-      "Tavuk / Kargalı Dolma",
-      "Yoğurtlu Makarna",
-      "Akdeniz Salata"
+      "Tel Şehriye Çorba",
+      "Yayla Çorba",
+      "Tavuk Fajita",
+      "Biber Dolma",
+      "Spagetti",
+      "Mevsim Salata"
     ]
   },
   "2025-12-27": {
     "tarih": "2025-12-27",
     "kahvalti": [
       "Peynirli Omlet",
-      "Kaşar Peynir",
       "Simit",
+      "Kaşar Peynir",
       "Tahinli Pekmez"
     ],
     "aksam": [
-      "Mercimek Çorba / Düğün Çorba",
-      "Kuru Fasulye / Şehriye Çorba",
+      "Domates Çorba",
+      "Düğün Çorba",
+      "Etsiz Nohut veya Kuru Fasulye",
+      "Karışık Kızartma",
       "Şehriyeli Pirinç Pilavı",
-      "Halis Tatlı"
+      "Revani",
+      "Turşu"
     ]
   },
   "2025-12-28": {
@@ -416,9 +468,11 @@
       "Mevsim Sebzeleri Söğüş"
     ],
     "aksam": [
-      "Enginarlı Yeşil Mercimek Çorba / Mantar Çorba",
-      "Etli Güveç / Tavuk Sote",
-      "Şehriyeli Bulgur Pilavı",
+      "Ezogelin Çorba",
+      "Şehriye Çorba",
+      "Pideli Köfte",
+      "Taze Fasulye",
+      "Sebzeli Bulgur Pilavı",
       "Ayran"
     ]
   },
@@ -427,15 +481,15 @@
     "kahvalti": [
       "Sade Omlet",
       "Çikolatalı Milföy Börek",
-      "Yumurtalı Ekmek",
-      "Mısır Gevreği",
+      "Yöresel Peynir",
       "Muz"
     ],
     "aksam": [
       "Toyga Çorba",
-      "Tavuk Tantuni (Soğanlı + Savaş)",
-      "Biber Dolma (Yoğurtlu, Soslu)",
-      "Makarna (İsteğe göre soslu)",
+      "Tarhana Çorba",
+      "Tavuk Tantuni",
+      "Biber Dolma",
+      "Makarna",
       "Sütlaç"
     ]
   },
@@ -445,12 +499,14 @@
       "Peynirli Börek",
       "Haşlanmış Yumurta",
       "Kaşar Peynir",
-      "Sürebilir Çikolata"
+      "Sürülebilir Çikolata"
     ],
     "aksam": [
       "Mercimek Çorba",
+      "Sebze Çorba",
       "Çoban Kavurma",
-      "Şehriyeli Pilav",
+      "Şakşuka",
+      "Pirinç Pilavı",
       "Pembe Sultan"
     ]
   },
@@ -463,6 +519,7 @@
       "Mevsim Sebzeleri Söğüş"
     ],
     "aksam": [
+      "Yüksük Çorba",
       "Yayla Çorba",
       "Tavuk Sote",
       "Karnabahar Kızartma",

@@ -199,6 +199,29 @@ app.get('/health', (req, res) => {
     });
 });
 
+// API'den yemek listesini güncelle
+app.post('/update-from-api', async (req, res) => {
+    try {
+        const { updateYemekListesiFromAPI } = require('./update-from-api');
+        const result = await updateYemekListesiFromAPI();
+        res.json({
+            success: true,
+            message: 'Yemek listesi API\'den başarıyla güncellendi',
+            totalDays: Object.keys(result).length,
+            dateRange: {
+                start: Object.keys(result)[0],
+                end: Object.keys(result)[Object.keys(result).length - 1]
+            }
+        });
+    } catch (error) {
+        console.error('❌ API güncelleme hatası:', error.message);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // Sunucuyu başlat
 app.listen(PORT, () => {
     console.log(`🚀 Yemek API sunucusu çalışıyor: http://localhost:${PORT}`);
