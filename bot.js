@@ -396,6 +396,47 @@ client.on('message', async (message) => {
             console.log(`   Sonuç: Mention = ${isMentioned}\n`);
         }
 
+        // ÖNCE komut kontrolü yap (mention kontrolünden önce)
+        const command = parseCommand(messageBody);
+        if (command && isMentioned) {
+            console.log(`\n📋 Komut alındı: ${command}`);
+            console.log(`   Grup: ${chat.name}`);
+            console.log(`   Gönderen: ${message.from}`);
+            
+            // Anti-ban kontrolleri (komutlar için de geçerli)
+            const userId = message.from;
+            const groupId = chat.id._serialized || chat.id;
+            
+            // Kullanıcı istek limiti kontrolü
+            const userRequestCheck = rateLimiter.canUserRequest(userId);
+            if (!userRequestCheck.canRequest) {
+                console.log(`   ⚠️  Rate limit: Kullanıcı çok fazla istek gönderdi.`);
+                try {
+                    await message.reply(`⏳ Çok fazla istek gönderdiniz. Lütfen ${userRequestCheck.remaining} dakika sonra tekrar deneyin.`);
+                } catch (e) {
+                    // Mesaj gönderilemezse sessizce geç
+                }
+                return;
+            }
+            
+            // Cooldown kontrolü (komutlar için daha kısa)
+            const cooldownCheck = rateLimiter.isOnCooldown(userId, groupId);
+            if (cooldownCheck.onCooldown && command !== 'help') {
+                console.log(`   ⏳ Cooldown: ${cooldownCheck.remaining} saniye kaldı`);
+                try {
+                    await message.reply(`⏳ Lütfen ${cooldownCheck.remaining} saniye bekleyin.`);
+                } catch (e) {
+                    // Mesaj gönderilemezse sessizce geç
+                }
+                return;
+            }
+            
+            // Komutu işle
+            await handleCommand(chat, message, command);
+            rateLimiter.setCooldown(userId, groupId);
+            return;
+        }
+
         if (isMentioned) {
             console.log(`\n📱 Yeni mesaj alındı!`);
             console.log(`   Grup: ${chat.name}`);
@@ -439,13 +480,6 @@ client.on('message', async (message) => {
                 } catch (e) {
                     // Mesaj gönderilemezse sessizce geç
                 }
-                return;
-            }
-            
-            // Komut sistemi kontrolü
-            const command = parseCommand(messageBody);
-            if (command) {
-                await handleCommand(chat, message, command);
                 return;
             }
             
@@ -586,23 +620,29 @@ function extractTarihFromMessage(messageBody) {
 function parseCommand(messageBody) {
     if (!messageBody) return null;
     
-    const lowerBody = messageBody.toLowerCase().trim();
+    const trimmedBody = messageBody.trim();
+    const lowerBody = trimmedBody.toLowerCase();
     
-    // Komut kontrolü (/ ile başlayan veya komut kelimesi)
-    if (lowerBody.startsWith('/help') || lowerBody.includes('komut') || lowerBody.includes('yardım')) {
+    // Komut kontrolü (/ ile başlayan komutlar öncelikli)
+    if (trimmedBody.startsWith('/help') || trimmedBody.toLowerCase() === '/help' || lowerBody === 'help' || lowerBody.includes('komut') || lowerBody.includes('yardım')) {
         return 'help';
     }
-    if (lowerBody.startsWith('/menu') || lowerBody === 'menu' || lowerBody === 'menü') {
+    if (trimmedBody.startsWith('/menu') || trimmedBody.toLowerCase() === '/menu') {
         return 'menu';
     }
-    if (lowerBody.startsWith('/today') || lowerBody === 'bugün' || lowerBody === 'bugun') {
+    if (trimmedBody.startsWith('/today') || trimmedBody.toLowerCase() === '/today') {
         return 'today';
     }
-    if (lowerBody.startsWith('/tomorrow') || lowerBody === 'yarın' || lowerBody === 'yarin') {
+    if (trimmedBody.startsWith('/tomorrow') || trimmedBody.toLowerCase() === '/tomorrow') {
         return 'tomorrow';
     }
-    if (lowerBody.startsWith('/week') || lowerBody === 'haftalık' || lowerBody === 'haftalik' || lowerBody === 'bu hafta') {
+    if (trimmedBody.startsWith('/week') || trimmedBody.toLowerCase() === '/week') {
         return 'week';
+    }
+    
+    // Eğer / ile başlıyorsa ama komut tanınmıyorsa, help göster
+    if (trimmedBody.startsWith('/')) {
+        return 'help';
     }
     
     return null;
