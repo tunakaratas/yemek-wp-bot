@@ -400,13 +400,14 @@ client.on('message', async (message) => {
             console.log(`\n⚠️  Bilinmeyen komut tespit edildi: "${cleanMessageBody}"`);
             let isMentionedForUnknown = false;
             
-            // Mention kontrolü
+            // Mention kontrolü - SADECE TAM EŞLEŞME
             try {
                 const mentions = await message.getMentions();
                 if (mentions && mentions.length > 0) {
                     isMentionedForUnknown = mentions.some(contact => {
                         if (contact && contact.id) {
-                            return contact.id.user === botNumber || contact.id._serialized?.includes(botNumber);
+                            // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
+                            return contact.id.user === botNumber;
                         }
                         return false;
                     });
@@ -416,14 +417,13 @@ client.on('message', async (message) => {
                     isMentionedForUnknown = rawMessageData.mentionedJid.some(id => {
                         const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                         const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
-                        return cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
+                        // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
+                        return cleanId === botCleanId;
                     });
                 }
             }
             
-            if (!isMentionedForUnknown && messageBody.includes('@')) {
-                isMentionedForUnknown = true;
-            }
+            // @ işareti kontrolünü kaldırdık - sadece tam mention kontrolü yeterli
             
             if (isMentionedForUnknown) {
                 try {
@@ -476,24 +476,12 @@ client.on('message', async (message) => {
                             const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                             const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                             console.log(`   Karşılaştırma: cleanId=${cleanId}, botCleanId=${botCleanId}`);
-                            const match = cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
+                            // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
+                            const match = cleanId === botCleanId;
                             if (match) console.log(`   ✅ Eşleşme bulundu!`);
                             return match;
                         });
                     }
-                }
-                
-                // Eğer hala mention bulunamadıysa, mesaj içeriğinde @ işareti varsa mention say
-                if (!isMentionedForCommand && messageBody.includes('@')) {
-                    console.log(`   Mesaj içeriğinde @ işareti var, mention olarak kabul ediliyor`);
-                    isMentionedForCommand = true;
-                }
-                
-                // Eğer hala mention bulunamadıysa ama mesaj içeriğinde @ işareti varsa, mention olarak kabul et
-                // (Komutlar için mention gerekli ama bazen mention kontrolü çalışmıyor)
-                if (!isMentionedForCommand && messageBody.includes('@')) {
-                    console.log(`   ⚠️  Mention kontrolü başarısız ama mesaj içeriğinde @ var, mention olarak kabul ediliyor`);
-                    isMentionedForCommand = true;
                 }
             }
             
@@ -620,7 +608,8 @@ client.on('message', async (message) => {
                 if (mentions && mentions.length > 0) {
                     isMentioned = mentions.some(contact => {
                         if (contact && contact.id) {
-                            return contact.id.user === botNumber || contact.id._serialized?.includes(botNumber);
+                            // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
+                            return contact.id.user === botNumber;
                         }
                         return false;
                     });
@@ -640,11 +629,12 @@ client.on('message', async (message) => {
                         const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                         const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                         console.log(`   Karşılaştırma: ${cleanId} === ${botCleanId}?`);
-                        return cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
+                        // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
+                        return cleanId === botCleanId;
                     });
                 }
                 
-                // Eğer mentionedJid yoksa, mesaj içeriğinde @ işareti veya yemek kelimesi var mı kontrol et
+                // Eğer mentionedJid yoksa, mesaj içeriğinde yemek kelimesi var mı kontrol et
                 // AMA komut değilse (komutlar zaten yukarıda işlendi)
                 if (!isMentioned && messageBody) {
                     const lowerBody = messageBody.toLowerCase();
