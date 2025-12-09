@@ -375,7 +375,7 @@ client.on('message', async (message) => {
             
             if (isMentionedForUnknown) {
                 try {
-                    await message.reply(`⚠️ Bilinmeyen komut: "${cleanMessageBody}"\n\n📋 Kullanılabilir komutlar:\n• help - Yardım\n• menu - Bugünün menüsü\n• yarın - Yarının menüsü\n• haftalık - Haftalık menü\n\nTüm komutlar için: @bot help`);
+                    await message.reply(`⚠️ Bilinmeyen komut: "${cleanMessageBody}"\n\n📋 Kullanılabilir komutlar:\n• help - Yardım\n• menu - Bugünün menüsü\n• yarın - Yarının menüsü\n• haftalık - Haftalık menü\n\n💡 İPUCU: Sadece botu etiketlemek de yeterli! (@bot)\nTüm komutlar için: @bot help`);
                     rateLimiter.messageSent();
                 } catch (e) {
                     console.error('⚠️  Bilinmeyen komut uyarısı gönderilemedi:', e.message);
