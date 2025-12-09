@@ -388,11 +388,11 @@ client.on('message', async (message) => {
         
         // Komut varsa işaretle
         if (command) {
-            messageData.isCommand = true;
+            adminMessageData.isCommand = true;
         }
         
-        // Admin paneline mesajı gönder
-        await sendToAdminPanel('messages', messageData);
+        // Admin paneline mesajı gönder (async, hata olsa bile devam et)
+        sendToAdminPanel('messages', adminMessageData).catch(() => {});
         
         // Eğer komut yoksa ama mesaj tek kelime ve mention varsa, bilinmeyen komut olabilir
         if (!command && cleanMessageBody && !cleanMessageBody.includes(' ') && messageBody.includes('@')) {
