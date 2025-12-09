@@ -691,34 +691,53 @@ client.on('message', async (message) => {
                 }
             }
             
-            // 3. Son çare: Mesaj içeriğinde bot numarası geçiyor mu kontrol et
-            if (!isMentioned && messageBody.includes('@')) {
-                // Mesaj içinde bot numarası geçiyor mu? (farklı formatlar)
-                // Örnek: @905335445983, @5335445983, 905335445983, 5335445983
-                const botNumberVariants = [
-                    botNumberClean, // 905335445983
-                    botNumberClean.replace(/^90/, ''), // 5335445983 (90 kaldırılmış)
-                    botNumberClean.replace(/^905/, ''), // 335445983 (905 kaldırılmış)
-                ];
-                
-                // Mesaj içinde bu numaralardan biri geçiyor mu?
-                const hasBotMention = botNumberVariants.some(num => {
-                    // @ ile başlayan mention kontrolü
-                    const mentionPattern = `@${num}`;
-                    const hasMention = messageBody.includes(mentionPattern) || 
-                                      messageBody.toLowerCase().includes(mentionPattern.toLowerCase());
+            // 3. Mesaj içeriğinde bot numarası veya bot ismi geçiyor mu kontrol et
+            if (!isMentioned) {
+                // Bot numarası kontrolü (@ ile başlayan)
+                if (messageBody.includes('@')) {
+                    const botNumberVariants = [
+                        botNumberClean, // 905335445983
+                        botNumberClean.replace(/^90/, ''), // 5335445983 (90 kaldırılmış)
+                        botNumberClean.replace(/^905/, ''), // 335445983 (905 kaldırılmış)
+                    ];
                     
-                    if (hasMention) {
-                        console.log(`   ✅ Mesaj içeriğinde bot numarası mention'ı bulundu: ${mentionPattern}`);
-                        return true;
+                    const hasBotNumberMention = botNumberVariants.some(num => {
+                        const mentionPattern = `@${num}`;
+                        const hasMention = messageBody.includes(mentionPattern) || 
+                                          messageBody.toLowerCase().includes(mentionPattern.toLowerCase());
+                        if (hasMention) {
+                            console.log(`   ✅ Mesaj içeriğinde bot numarası mention'ı bulundu: ${mentionPattern}`);
+                            return true;
+                        }
+                        return false;
+                    });
+                    
+                    if (hasBotNumberMention) {
+                        isMentioned = true;
                     }
-                    return false;
-                });
+                }
                 
-                if (hasBotMention) {
-                    isMentioned = true;
-                } else {
-                    console.log(`   ⚠️  Mesaj içeriğinde bot numarası bulunamadı`);
+                // Bot ismi kontrolü (kaydedilen isimle mention)
+                if (!isMentioned && botPushname && botPushname.trim().length > 0) {
+                    const botNameLower = botPushname.toLowerCase().trim();
+                    const messageBodyLower = messageBody.toLowerCase();
+                    
+                    // Bot ismi mesaj içinde geçiyor mu? (@ ile başlayan mention olarak)
+                    const nameMentionPattern = `@${botPushname}`;
+                    if (messageBody.includes(nameMentionPattern) || messageBodyLower.includes(nameMentionPattern.toLowerCase())) {
+                        console.log(`   ✅ Mesaj içeriğinde bot ismi mention'ı bulundu: ${nameMentionPattern}`);
+                        isMentioned = true;
+                    }
+                    
+                    // Eğer hala mention bulunamadıysa, sadece bot ismi geçiyorsa da mention say
+                    if (!isMentioned && messageBodyLower.includes(botNameLower)) {
+                        // Bot ismi tek başına veya cümle içinde geçiyorsa mention say
+                        const nameRegex = new RegExp(`\\b${botNameLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                        if (nameRegex.test(messageBody)) {
+                            console.log(`   ✅ Mesaj içeriğinde bot ismi bulundu (mention olarak kabul edildi): ${botPushname}`);
+                            isMentioned = true;
+                        }
+                    }
                 }
             }
             
