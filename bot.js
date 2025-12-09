@@ -455,16 +455,16 @@ client.on('message', async (message) => {
                     const mentions = await message.getMentions();
                     console.log(`   getMentions() sonucu:`, mentions?.length || 0, 'mention');
                     if (mentions && mentions.length > 0) {
-                        mentions.forEach(contact => {
-                            if (contact && contact.id) {
-                                const contactUser = contact.id.user || '';
-                                const contactSerialized = contact.id._serialized || '';
-                                console.log(`   Mention kontrolü: contact.user=${contactUser}, botNumber=${botNumber}`);
-                                if (contactUser === botNumber || contactSerialized.includes(botNumber)) {
-                                    isMentionedForCommand = true;
+                            mentions.forEach(contact => {
+                                if (contact && contact.id) {
+                                    const contactUser = contact.id.user || '';
+                                    console.log(`   Mention kontrolü: contact.user=${contactUser}, botNumber=${botNumber}`);
+                                    // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
+                                    if (contactUser === botNumber) {
+                                        isMentionedForCommand = true;
+                                    }
                                 }
-                            }
-                        });
+                            });
                     }
                 } catch (mentionError) {
                     console.log(`   getMentions() hatası, alternatif yöntem deneniyor...`);
