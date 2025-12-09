@@ -324,9 +324,82 @@ client.on('message', async (message) => {
         const BLOCKED_NUMBER = '5428055983'; // Bu numara etiketlenince bot cevap vermeyecek
         let isMentioned = false;
         
-        // 5428055983 numarası etiketlenmişse hiçbir şey yapma
         const messageBody = message.body || '';
         const messageData = message.rawData || {};
+        
+        // EN ÖNCE komut kontrolü yap (her şeyden önce!)
+        const command = parseCommand(messageBody);
+        if (command) {
+            console.log(`\n🔍 Komut tespit edildi: ${command}`);
+            console.log(`   Mesaj: ${messageBody}`);
+            
+            // Komut varsa mention kontrolü yap (komutlar için mention gerekli)
+            let isMentionedForCommand = false;
+            
+            // Mention kontrolü - önce getMentions() dene
+            try {
+                const mentions = await message.getMentions();
+                if (mentions && mentions.length > 0) {
+                    isMentionedForCommand = mentions.some(contact => {
+                        if (contact && contact.id) {
+                            return contact.id.user === botNumber || contact.id._serialized?.includes(botNumber);
+                        }
+                        return false;
+                    });
+                }
+            } catch (mentionError) {
+                // Alternatif yöntem: Mesaj verisinden mention kontrolü
+                if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
+                    isMentionedForCommand = messageData.mentionedJid.some(id => {
+                        const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                        const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                        return cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
+                    });
+                }
+            }
+            
+            if (isMentionedForCommand) {
+                console.log(`   ✅ Bot mention edildi, komut işlenecek`);
+                
+                // Anti-ban kontrolleri (komutlar için de geçerli)
+                const userId = message.from;
+                const groupId = chat.id._serialized || chat.id;
+                
+                // Kullanıcı istek limiti kontrolü
+                const userRequestCheck = rateLimiter.canUserRequest(userId);
+                if (!userRequestCheck.canRequest) {
+                    console.log(`   ⚠️  Rate limit: Kullanıcı çok fazla istek gönderdi.`);
+                    try {
+                        await message.reply(`⏳ Çok fazla istek gönderdiniz. Lütfen ${userRequestCheck.remaining} dakika sonra tekrar deneyin.`);
+                    } catch (e) {
+                        // Mesaj gönderilemezse sessizce geç
+                    }
+                    return;
+                }
+                
+                // Cooldown kontrolü (komutlar için daha kısa, help için hiç yok)
+                const cooldownCheck = rateLimiter.isOnCooldown(userId, groupId);
+                if (cooldownCheck.onCooldown && command !== 'help') {
+                    console.log(`   ⏳ Cooldown: ${cooldownCheck.remaining} saniye kaldı`);
+                    try {
+                        await message.reply(`⏳ Lütfen ${cooldownCheck.remaining} saniye bekleyin.`);
+                    } catch (e) {
+                        // Mesaj gönderilemezse sessizce geç
+                    }
+                    return;
+                }
+                
+                // Komutu işle
+                await handleCommand(chat, message, command);
+                rateLimiter.setCooldown(userId, groupId);
+                return; // Komut işlendi, normal akışa devam etme
+            } else {
+                console.log(`   ⚠️  Komut var ama bot mention edilmedi, komut işlenmeyecek`);
+                return; // Komut var ama mention yok, hiçbir şey yapma
+            }
+        }
+        
+        // 5428055983 numarası etiketlenmişse hiçbir şey yapma
         if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
             const blockedMentioned = messageData.mentionedJid.some(id => {
                 const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
@@ -342,6 +415,72 @@ client.on('message', async (message) => {
         if (messageBody.includes(BLOCKED_NUMBER) || messageBody.includes(`@${BLOCKED_NUMBER}`)) {
             console.log(`   ⛔ ${BLOCKED_NUMBER} numarası mesajda geçiyor, cevap verilmeyecek`);
             return;
+        }
+
+        // Komut yoksa normal mention kontrolü yap
+            // Komut varsa mention kontrolü yap (komutlar için mention gerekli)
+            let isMentionedForCommand = false;
+            
+            // Mention kontrolü - önce getMentions() dene
+            try {
+                const mentions = await message.getMentions();
+                if (mentions && mentions.length > 0) {
+                    isMentionedForCommand = mentions.some(contact => {
+                        if (contact && contact.id) {
+                            return contact.id.user === botNumber || contact.id._serialized?.includes(botNumber);
+                        }
+                        return false;
+                    });
+                }
+            } catch (mentionError) {
+                // Alternatif yöntem: Mesaj verisinden mention kontrolü
+                if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
+                    isMentionedForCommand = messageData.mentionedJid.some(id => {
+                        const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                        const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                        return cleanId === botCleanId || id.includes(botNumber) || cleanId.includes(botCleanId);
+                    });
+                }
+            }
+            
+            if (isMentionedForCommand) {
+                console.log(`\n📋 Komut alındı: ${command}`);
+                console.log(`   Grup: ${chat.name}`);
+                console.log(`   Gönderen: ${message.from}`);
+                
+                // Anti-ban kontrolleri (komutlar için de geçerli)
+                const userId = message.from;
+                const groupId = chat.id._serialized || chat.id;
+                
+                // Kullanıcı istek limiti kontrolü
+                const userRequestCheck = rateLimiter.canUserRequest(userId);
+                if (!userRequestCheck.canRequest) {
+                    console.log(`   ⚠️  Rate limit: Kullanıcı çok fazla istek gönderdi.`);
+                    try {
+                        await message.reply(`⏳ Çok fazla istek gönderdiniz. Lütfen ${userRequestCheck.remaining} dakika sonra tekrar deneyin.`);
+                    } catch (e) {
+                        // Mesaj gönderilemezse sessizce geç
+                    }
+                    return;
+                }
+                
+                // Cooldown kontrolü (komutlar için daha kısa, help için hiç yok)
+                const cooldownCheck = rateLimiter.isOnCooldown(userId, groupId);
+                if (cooldownCheck.onCooldown && command !== 'help') {
+                    console.log(`   ⏳ Cooldown: ${cooldownCheck.remaining} saniye kaldı`);
+                    try {
+                        await message.reply(`⏳ Lütfen ${cooldownCheck.remaining} saniye bekleyin.`);
+                    } catch (e) {
+                        // Mesaj gönderilemezse sessizce geç
+                    }
+                    return;
+                }
+                
+                // Komutu işle
+                await handleCommand(chat, message, command);
+                rateLimiter.setCooldown(userId, groupId);
+                return; // Komut işlendi, normal akışa devam etme
+            }
         }
 
         // Mention kontrolü - önce getMentions() dene, hata olursa alternatif yöntem kullan
@@ -378,14 +517,16 @@ client.on('message', async (message) => {
             }
             
             // Eğer mentionedJid yoksa, mesaj içeriğinde @ işareti veya yemek kelimesi var mı kontrol et
+            // AMA komut değilse (komutlar zaten yukarıda işlendi)
             if (!isMentioned && messageBody) {
                 const lowerBody = messageBody.toLowerCase();
                 
-                // Mention varsa veya yemek/menü kelimesi varsa cevap ver
+                // Komut değilse ve yemek/menü kelimesi varsa cevap ver
+                // Komut kontrolü zaten yukarıda yapıldı, buraya gelirse komut değil demektir
                 if (messageBody.includes('@') || 
-                    lowerBody.includes('yemek') || 
-                    lowerBody.includes('menü') || 
-                    lowerBody.includes('menu') || 
+                    (lowerBody.includes('yemek') && !lowerBody.startsWith('/')) || 
+                    (lowerBody.includes('menü') && !lowerBody.startsWith('/')) || 
+                    (lowerBody.includes('menu') && !lowerBody.startsWith('/')) || 
                     lowerBody.includes('ne var') ||
                     lowerBody.includes('bugün ne var')) {
                     console.log(`   ✅ Mention veya yemek kelimesi tespit edildi, cevap verilecek`);
@@ -394,47 +535,6 @@ client.on('message', async (message) => {
             }
             
             console.log(`   Sonuç: Mention = ${isMentioned}\n`);
-        }
-
-        // ÖNCE komut kontrolü yap (mention kontrolünden önce)
-        const command = parseCommand(messageBody);
-        if (command && isMentioned) {
-            console.log(`\n📋 Komut alındı: ${command}`);
-            console.log(`   Grup: ${chat.name}`);
-            console.log(`   Gönderen: ${message.from}`);
-            
-            // Anti-ban kontrolleri (komutlar için de geçerli)
-            const userId = message.from;
-            const groupId = chat.id._serialized || chat.id;
-            
-            // Kullanıcı istek limiti kontrolü
-            const userRequestCheck = rateLimiter.canUserRequest(userId);
-            if (!userRequestCheck.canRequest) {
-                console.log(`   ⚠️  Rate limit: Kullanıcı çok fazla istek gönderdi.`);
-                try {
-                    await message.reply(`⏳ Çok fazla istek gönderdiniz. Lütfen ${userRequestCheck.remaining} dakika sonra tekrar deneyin.`);
-                } catch (e) {
-                    // Mesaj gönderilemezse sessizce geç
-                }
-                return;
-            }
-            
-            // Cooldown kontrolü (komutlar için daha kısa)
-            const cooldownCheck = rateLimiter.isOnCooldown(userId, groupId);
-            if (cooldownCheck.onCooldown && command !== 'help') {
-                console.log(`   ⏳ Cooldown: ${cooldownCheck.remaining} saniye kaldı`);
-                try {
-                    await message.reply(`⏳ Lütfen ${cooldownCheck.remaining} saniye bekleyin.`);
-                } catch (e) {
-                    // Mesaj gönderilemezse sessizce geç
-                }
-                return;
-            }
-            
-            // Komutu işle
-            await handleCommand(chat, message, command);
-            rateLimiter.setCooldown(userId, groupId);
-            return;
         }
 
         if (isMentioned) {
