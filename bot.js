@@ -394,8 +394,35 @@ client.on('message', async (message) => {
         // Admin paneline mesajı gönder (async, hata olsa bile devam et)
         sendToAdminPanel('messages', adminMessageData).catch(() => {});
         
-        // Eğer komut yoksa ama mesaj tek kelime ve mention varsa, bilinmeyen komut olabilir
-        if (!command && cleanMessageBody && !cleanMessageBody.includes(' ') && messageBody.includes('@')) {
+        // Eğer komut yoksa ama mesaj tek kelime ve BOT mention edilmişse, bilinmeyen komut olabilir
+        // ÖNCE mention kontrolü yap, sonra bilinmeyen komut kontrolü yap
+        let isMentionedForUnknown = false;
+        if (!command && cleanMessageBody && !cleanMessageBody.includes(' ')) {
+            // Önce mention kontrolü yap - SADECE BOT mention edilmişse devam et
+            try {
+                const mentions = await message.getMentions();
+                if (mentions && mentions.length > 0) {
+                    isMentionedForUnknown = mentions.some(contact => {
+                        if (contact && contact.id) {
+                            // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
+                            return contact.id.user === botNumber;
+                        }
+                        return false;
+                    });
+                }
+            } catch (mentionError) {
+                if (rawMessageData.mentionedJid && Array.isArray(rawMessageData.mentionedJid)) {
+                    isMentionedForUnknown = rawMessageData.mentionedJid.some(id => {
+                        const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                        const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+                        // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
+                        return cleanId === botCleanId;
+                    });
+                }
+            }
+        }
+        
+        if (!command && cleanMessageBody && !cleanMessageBody.includes(' ') && isMentionedForUnknown) {
             // Tek kelime ve BOT mention edilmiş - bilinmeyen komut olabilir
             console.log(`\n⚠️  Bilinmeyen komut tespit edildi: "${cleanMessageBody}"`);
             
