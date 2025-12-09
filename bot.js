@@ -662,19 +662,26 @@ client.on('message', async (message) => {
                 }
             }
             
-            // 1. getMentions() ile kontrol et
+            // 1. getMentions() ile kontrol et - SADECE TAM EŞLEŞME!
             try {
                 const mentions = await message.getMentions();
                 console.log(`   getMentions() sonucu:`, mentions?.length || 0, 'mention');
                 if (mentions && mentions.length > 0) {
                     mentions.forEach((contact, idx) => {
-                        console.log(`   Mention[${idx}]:`, contact?.id?.user, contact?.id?._serialized);
+                        const contactUser = contact?.id?.user || '';
+                        const contactSerialized = contact?.id?._serialized || '';
+                        console.log(`   Mention[${idx}]: user="${contactUser}", serialized="${contactSerialized}"`);
                     });
                     isMentioned = mentions.some(contact => {
                         if (contact?.id) {
                             const contactUser = contact.id.user || '';
+                            // SADECE TAM EŞLEŞME - includes() YOK!
                             const match = contactUser === botNumber;
-                            if (match) console.log(`   ✅ getMentions() ile EŞLEŞME: ${contactUser} === ${botNumber}`);
+                            if (match) {
+                                console.log(`   ✅ getMentions() TAM EŞLEŞME: "${contactUser}" === "${botNumber}"`);
+                            } else {
+                                console.log(`   ❌ getMentions() EŞLEŞME YOK: "${contactUser}" !== "${botNumber}"`);
+                            }
                             return match;
                         }
                         return false;
