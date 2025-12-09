@@ -330,14 +330,15 @@ client.on('message', async (message) => {
         // EN ÖNCE komut kontrolü yap (her şeyden önce!)
         // Mesajdan mention'ı temizle ve sadece komutu kontrol et
         let cleanMessageBody = messageBody;
-        // Mention'ları temizle (örneğin "@bot help" -> "help")
-        if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
-            // Mention varsa mesajdan temizle
-            messageData.mentionedJid.forEach(mentionedId => {
-                const cleanId = mentionedId.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
-                cleanMessageBody = cleanMessageBody.replace(new RegExp(`@${cleanId}`, 'gi'), '').trim();
-            });
-        }
+        // Mention'ları temizle (örneğin "@231868775555151 help" -> "help")
+        // Önce @ işaretinden sonraki tüm sayıları temizle
+        cleanMessageBody = cleanMessageBody.replace(/@\d+/g, '').trim();
+        // Birden fazla boşluk varsa tek boşluğa çevir
+        cleanMessageBody = cleanMessageBody.replace(/\s+/g, ' ').trim();
+        
+        console.log(`\n🔍 Komut kontrolü başlatılıyor...`);
+        console.log(`   Orijinal mesaj: "${messageBody}"`);
+        console.log(`   Temizlenmiş mesaj: "${cleanMessageBody}"`);
         
         const command = parseCommand(cleanMessageBody);
         if (command) {
