@@ -264,11 +264,32 @@ client.on('qr', (qr) => {
     }, 20000);
 });
 
+// Bot bilgilerini global olarak sakla
+let botInfo = {
+    number: null,
+    pushname: null,
+    numberClean: null
+};
+
 // Bağlantı hazır olduğunda
-client.on('ready', () => {
+client.on('ready', async () => {
     retryCount = 0; // Başarılı bağlantıda retry sayacını sıfırla
     console.log('\n✅✅✅ WhatsApp bot hazır! ✅✅✅');
     console.log('📱 Bot numarası:', client.info.wid.user);
+    
+    // Bot bilgilerini kaydet
+    botInfo.number = client.info.wid.user;
+    botInfo.numberClean = botInfo.number.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+    
+    // Botun pushname'ini al (kaydedilen isim)
+    try {
+        const botContact = await client.getContactById(client.info.wid._serialized);
+        botInfo.pushname = botContact.pushname || botContact.name || null;
+        console.log('👤 Bot ismi (pushname):', botInfo.pushname || '(isim kaydedilmemiş)');
+    } catch (error) {
+        console.log('⚠️  Bot ismi alınamadı:', error.message);
+    }
+    
     console.log('🎉 Artık grup ve özel mesajları dinliyor...\n');
     
     // Bot numarasını config'e kaydet
@@ -345,8 +366,9 @@ client.on('message', async (message) => {
             console.log(`📩 Özel mesaj alındı: ${message.from}`);
         }
         
-        const botNumber = client.info.wid.user;
-        const botNumberClean = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+        const botNumber = botInfo.number || client.info?.wid?.user || '';
+        const botNumberClean = botInfo.numberClean || botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
+        const botPushname = botInfo.pushname || '';
         const BLOCKED_NUMBER = '5428055983'; // Bu numara etiketlenince bot cevap vermeyecek
         let isMentioned = false;
         
