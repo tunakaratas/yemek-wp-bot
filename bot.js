@@ -649,11 +649,17 @@ client.on('message', async (message) => {
             console.log(`\n🔍 MENTION KONTROLÜ - Grup: ${chat.name}`);
             console.log(`   Bot numarası: ${botNumber} (temiz: ${botNumberClean})`);
             
+            // Message object'inin tüm property'lerini kontrol et
+            console.log(`   Message keys:`, Object.keys(message).filter(k => k.toLowerCase().includes('mention') || k.toLowerCase().includes('id')));
+            
             // rawMessageData'yı detaylı logla
             if (rawMessageData) {
                 console.log(`   rawMessageData keys:`, Object.keys(rawMessageData));
-                console.log(`   rawMessageData.mentionedJid:`, rawMessageData.mentionedJid);
-                console.log(`   rawMessageData tam:`, JSON.stringify(rawMessageData).substring(0, 500));
+                const mentionKeys = Object.keys(rawMessageData).filter(k => k.toLowerCase().includes('mention'));
+                console.log(`   Mention içeren key'ler:`, mentionKeys);
+                for (const key of mentionKeys) {
+                    console.log(`   ${key}:`, rawMessageData[key]);
+                }
             }
             
             // 1. getMentions() ile kontrol et
