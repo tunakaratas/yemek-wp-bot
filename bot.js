@@ -192,7 +192,7 @@ const client = new Client({
         dataPath: './.wwebjs_auth'
     }),
     puppeteer: {
-        headless: true, // Headless sunucu için true
+        headless: false, // X11 forwarding için false (görsel penceresi açılacak)
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
