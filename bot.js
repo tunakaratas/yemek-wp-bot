@@ -686,7 +686,24 @@ client.on('message', async (message) => {
                     rawMessageData.mentionedJidList,
                     rawMessageData.mentionedJids,
                     rawMessageData.mentions,
+                    rawMessageData.nonJidMentions, // WhatsApp'ta bazen bu alanda tutulur
                 ];
+                
+                // Ayrıca rawMessageData'nın tüm key'lerini kontrol et
+                const allKeys = Object.keys(rawMessageData || {});
+                console.log(`   rawMessageData tüm key'ler:`, allKeys);
+                
+                // "mention" içeren tüm key'leri kontrol et
+                const mentionKeys = allKeys.filter(k => k.toLowerCase().includes('mention'));
+                console.log(`   Mention içeren key'ler:`, mentionKeys);
+                
+                for (const key of mentionKeys) {
+                    const field = rawMessageData[key];
+                    if (Array.isArray(field) && field.length > 0) {
+                        console.log(`   "${key}" kontrol ediliyor:`, field);
+                        allFields.push(field);
+                    }
+                }
                 
                 for (let i = 0; i < allFields.length; i++) {
                     const field = allFields[i];
@@ -707,7 +724,10 @@ client.on('message', async (message) => {
                             // Alternatif: Bot numarası içeriyor mu?
                             let match3 = idStr.includes(botNumber) || idStr.includes(botNumberClean);
                             
-                            const match = match1 || match2 || match3;
+                            // Alternatif: @c.us formatında
+                            let match4 = idStr === `${botNumber}@c.us` || idStr === `${botNumberClean}@c.us`;
+                            
+                            const match = match1 || match2 || match3 || match4;
                             if (match) {
                                 console.log(`     ✅ EŞLEŞME BULUNDU! (${idStr})`);
                             }
