@@ -513,18 +513,22 @@ client.on('message', async (message) => {
 
         // Komut yoksa normal mention kontrolü yap (özel mesajlarda mention gerekmez)
         if (isPrivate) {
-            // Özel mesajlarda direkt mesaj içeriğine bak
+            // Özel mesajlarda: Herhangi bir mesaj yazılırsa help göster
+            // Eğer yemek/menü kelimesi varsa direkt menü göster
             const lowerBody = messageBody.toLowerCase();
             if (lowerBody.includes('yemek') || 
                 lowerBody.includes('menü') || 
                 lowerBody.includes('menu') || 
                 lowerBody.includes('ne var') ||
-                lowerBody.includes('bugün ne var') ||
-                lowerBody.includes('yarın') ||
-                lowerBody.includes('help') ||
-                lowerBody.includes('yardım')) {
+                lowerBody.includes('bugün ne var')) {
                 isMentioned = true;
-                console.log(`   ✅ Özel mesaj - yemek/menü kelimesi tespit edildi`);
+                console.log(`   ✅ Özel mesaj - yemek/menü kelimesi tespit edildi, menü gösterilecek`);
+            } else if (messageBody.trim().length > 0) {
+                // Herhangi bir mesaj yazıldıysa help göster
+                console.log(`   ✅ Özel mesaj - herhangi bir mesaj yazıldı, help gösterilecek`);
+                await sendPrivateHelpMessage(chat, message, false);
+                rateLimiter.setCooldown(message.from, chat.id._serialized || chat.id);
+                return;
             }
         } else {
             // Grup mesajlarında mention kontrolü yap
@@ -768,6 +772,9 @@ function parseCommand(messageBody) {
     
     // Komut kontrolü (slash olmadan, sadece kelime olarak)
     // Tam eşleşme kontrolü (başında ve sonunda boşluk veya mesaj sonu)
+    if (lowerBody === 'start' || lowerBody === 'başla' || lowerBody.startsWith('start ') || lowerBody.startsWith('başla ')) {
+        return 'start';
+    }
     if (lowerBody === 'help' || lowerBody === 'yardım' || lowerBody === 'komut' || lowerBody.startsWith('help ') || lowerBody.startsWith('yardım ') || lowerBody.startsWith('komut ')) {
         return 'help';
     }
@@ -809,9 +816,22 @@ async function handleCommand(chat, message, command) {
     try {
         console.log(`📋 Komut alındı: ${command}`);
         
+        const isPrivate = !(await message.getChat()).isGroup;
+        
         switch (command) {
+            case 'start':
+                if (isPrivate) {
+                    await sendPrivateHelpMessage(chat, message, true);
+                } else {
+                    await sendHelpMessage(chat, message);
+                }
+                break;
             case 'help':
-                await sendHelpMessage(chat, message);
+                if (isPrivate) {
+                    await sendPrivateHelpMessage(chat, message, false);
+                } else {
+                    await sendHelpMessage(chat, message);
+                }
                 break;
             case 'menu':
             case 'today':
@@ -833,6 +853,47 @@ async function handleCommand(chat, message, command) {
 }
 
 // Yardım mesajı gönder
+// Özel mesajlar için help mesajı
+async function sendPrivateHelpMessage(chat, message, isStart = false) {
+    const welcomeText = isStart ? `👋 *Hoş Geldiniz!*\n\n` : '';
+    const helpText = `${welcomeText}📋 *KYK Yemek Botu - Özel Mesaj Komutları*
+
+🔹 *Temel Komutlar:*
+• \`start\` veya \`başla\` - Botu başlat ve yardım mesajını göster
+• \`help\` veya \`yardım\` - Bu yardım mesajı
+• \`menu\` veya \`menü\` - Bugünün yemek menüsü
+• \`bugün\` - Bugünün yemek menüsü
+• \`yarın\` - Yarının yemek menüsü
+• \`haftalık\` veya \`week\` - Bu haftanın yemek menüsü
+
+🔹 *Kullanım:*
+• Özel mesajda direkt komut yazabilirsiniz
+• Mention gerekmez, sadece komut yazın
+• Örnek: \`menu\`, \`yarın\`, \`help\`
+
+🔹 *Tarih Sorgulama:*
+• "yarın", "pazartesi", "10 aralık" gibi ifadeler kullanabilirsiniz
+
+🔹 *Örnekler:*
+• \`start\` - Botu başlat
+• \`menu\` - Bugünün menüsü
+• \`yarın\` - Yarının menüsü
+• \`haftalık\` - Haftalık menü
+
+💡 *İpucu:* Herhangi bir mesaj yazarsanız otomatik olarak bu yardım mesajını göreceksiniz.
+
+━━━━━━━━━━━━━━━━━━━━
+@5428055983 (Tuna Karataş) tarafından geliştirilmiştir.`;
+
+    try {
+        await message.reply(helpText);
+        rateLimiter.messageSent();
+    } catch (error) {
+        console.error('⚠️  Yardım mesajı gönderme hatası:', error.message);
+    }
+}
+
+// Grup mesajları için help mesajı
 async function sendHelpMessage(chat, message) {
     const helpText = `📋 *KYK Yemek Botu - Komutlar*
 
