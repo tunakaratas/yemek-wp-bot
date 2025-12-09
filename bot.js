@@ -597,11 +597,11 @@ client.on('message', async (message) => {
                 console.log(`\n🔍 Mention kontrolü - Grup: ${chat.name}`);
                 console.log(`   Bot numarası: ${botNumber}`);
                 console.log(`   Mesaj içeriği: ${messageBody.substring(0, 100)}`);
-                console.log(`   rawData:`, JSON.stringify(messageData).substring(0, 200));
+                console.log(`   rawData:`, JSON.stringify(rawMessageData).substring(0, 200));
                 
                 // WhatsApp'ta mention'lar mesaj verisinde bulunur
-                if (messageData.mentionedJid && Array.isArray(messageData.mentionedJid)) {
-                    console.log(`   mentionedJid bulundu:`, messageData.mentionedJid);
+                if (rawMessageData.mentionedJid && Array.isArray(rawMessageData.mentionedJid)) {
+                    console.log(`   mentionedJid bulundu:`, rawMessageData.mentionedJid);
                     isMentioned = rawMessageData.mentionedJid.some(id => {
                         const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
                         const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
