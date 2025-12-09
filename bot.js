@@ -192,7 +192,7 @@ const client = new Client({
         dataPath: './.wwebjs_auth'
     }),
     puppeteer: {
-        headless: false, // X11 forwarding için false (görsel penceresi açılacak)
+        headless: true, // Headless sunucu için true (session varsa QR kod göstermez)
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
