@@ -396,34 +396,8 @@ client.on('message', async (message) => {
         
         // Eğer komut yoksa ama mesaj tek kelime ve mention varsa, bilinmeyen komut olabilir
         if (!command && cleanMessageBody && !cleanMessageBody.includes(' ') && messageBody.includes('@')) {
-            // Tek kelime ve mention var - bilinmeyen komut olabilir
+            // Tek kelime ve BOT mention edilmiş - bilinmeyen komut olabilir
             console.log(`\n⚠️  Bilinmeyen komut tespit edildi: "${cleanMessageBody}"`);
-            let isMentionedForUnknown = false;
-            
-            // Mention kontrolü - SADECE TAM EŞLEŞME
-            try {
-                const mentions = await message.getMentions();
-                if (mentions && mentions.length > 0) {
-                    isMentionedForUnknown = mentions.some(contact => {
-                        if (contact && contact.id) {
-                            // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
-                            return contact.id.user === botNumber;
-                        }
-                        return false;
-                    });
-                }
-            } catch (mentionError) {
-                if (rawMessageData.mentionedJid && Array.isArray(rawMessageData.mentionedJid)) {
-                    isMentionedForUnknown = rawMessageData.mentionedJid.some(id => {
-                        const cleanId = id.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
-                        const botCleanId = botNumber.replace('@c.us', '').replace('@s.whatsapp.net', '').replace('@', '');
-                        // SADECE TAM EŞLEŞME - başka numaraları eşleştirmemek için
-                        return cleanId === botCleanId;
-                    });
-                }
-            }
-            
-            // @ işareti kontrolünü kaldırdık - sadece tam mention kontrolü yeterli
             
             if (isMentionedForUnknown) {
                 try {
@@ -634,23 +608,9 @@ client.on('message', async (message) => {
                     });
                 }
                 
-                // Eğer mentionedJid yoksa, mesaj içeriğinde yemek kelimesi var mı kontrol et
-                // AMA komut değilse (komutlar zaten yukarıda işlendi)
-                if (!isMentioned && messageBody) {
-                    const lowerBody = messageBody.toLowerCase();
-                    
-                    // Komut değilse ve yemek/menü kelimesi varsa cevap ver
-                    // Komut kontrolü zaten yukarıda yapıldı, buraya gelirse komut değil demektir
-                    if (messageBody.includes('@') || 
-                        (lowerBody.includes('yemek') && !lowerBody.startsWith('/')) || 
-                        (lowerBody.includes('menü') && !lowerBody.startsWith('/')) || 
-                        (lowerBody.includes('menu') && !lowerBody.startsWith('/')) || 
-                        lowerBody.includes('ne var') ||
-                        lowerBody.includes('bugün ne var')) {
-                        console.log(`   ✅ Mention veya yemek kelimesi tespit edildi, cevap verilecek`);
-                        isMentioned = true;
-                    }
-                }
+                // GRUP MESAJLARINDA: Sadece gerçek mention kontrolü yapıldı
+                // Eğer mention yoksa, hiçbir şey yapma - @ işareti kontrolü YOK
+                // Yemek kelimesi kontrolü de YOK - sadece mention ile çalışır
                 
                 console.log(`   Sonuç: Mention = ${isMentioned}\n`);
             }
